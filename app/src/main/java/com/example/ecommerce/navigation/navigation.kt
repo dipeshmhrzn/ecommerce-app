@@ -4,20 +4,10 @@ import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.ecommerce.data.local.UserPreferencesDataStore
-import com.example.ecommerce.data.repositoryimpl.AuthRepositoryImpl
-import com.example.ecommerce.data.repositoryimpl.UserPreferencesRepositoryImpl
-import com.example.ecommerce.domain.repository.UserPreferencesRepository
-import com.example.ecommerce.domain.usecase.GetUserPreferencesUseCase
-import com.example.ecommerce.domain.usecase.LoginUseCase
-import com.example.ecommerce.domain.usecase.SetUserPreferenceUseCase
-import com.example.ecommerce.domain.usecase.SignupUseCase
-import com.example.ecommerce.presentation.auth.AuthViewModel
 import com.example.ecommerce.presentation.auth.ForgotPasswordScreen
 import com.example.ecommerce.presentation.auth.LoginScreen
 import com.example.ecommerce.presentation.auth.RegisterScreen
@@ -27,24 +17,12 @@ import com.example.ecommerce.presentation.onboardingscreen.OnBoardScreen3
 import com.example.ecommerce.presentation.onboardingscreen.OnScreenBoard2
 import com.example.ecommerce.presentation.splashscreen.SplashScreen
 import com.example.ecommerce.presentation.userpreferences.UserPreferencesViewModel
-import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun Navigation() {
     val navController = rememberNavController()
-    val context = LocalContext.current
 
-    val userPreferencesDataStore = remember { UserPreferencesDataStore(context) }
-    val userPreferencesRepo = remember { UserPreferencesRepositoryImpl(userPreferencesDataStore) }
-    val getUserPreferencesUseCase = remember { GetUserPreferencesUseCase(userPreferencesRepo) }
-    val setUserPreferencesUseCase = remember { SetUserPreferenceUseCase(userPreferencesRepo) }
-    val userPreferencesViewModel = remember { UserPreferencesViewModel(getUserPreferencesUseCase, setUserPreferencesUseCase) }
-
-
-    val authRepo = remember { AuthRepositoryImpl(FirebaseAuth.getInstance()) }
-    val loginUseCase = remember { LoginUseCase(authRepo) }
-    val signupUseCase = remember { SignupUseCase(authRepo) }
-    val authViewModel = remember { AuthViewModel(loginUseCase, signupUseCase, userPreferencesViewModel) }
+    val userPreferencesViewModel : UserPreferencesViewModel = viewModel()
 
     val userPreferencesState by userPreferencesViewModel.state.collectAsState()
 
@@ -85,11 +63,11 @@ fun Navigation() {
 
         composable<Routes.LoginScreen> {
             userPreferencesViewModel.setFirstTimeLogin(false)
-            LoginScreen(navHostController = navController, authViewModel = authViewModel)
+            LoginScreen(navHostController = navController)
         }
 
         composable<Routes.RegisterScreen> {
-            RegisterScreen(navHostController = navController, authViewModel = authViewModel)
+            RegisterScreen(navHostController = navController)
         }
 
         composable<Routes.ForgotPasswordScreen> {

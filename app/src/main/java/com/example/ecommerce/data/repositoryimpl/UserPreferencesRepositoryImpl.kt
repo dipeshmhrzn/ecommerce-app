@@ -3,6 +3,7 @@ package com.example.ecommerce.data.repositoryimpl
 import com.example.ecommerce.data.local.UserPreferencesDataStore
 import com.example.ecommerce.domain.repository.UserPreferencesRepository
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
 class UserPreferencesRepositoryImpl(
     private val userPreferencesDataStore: UserPreferencesDataStore

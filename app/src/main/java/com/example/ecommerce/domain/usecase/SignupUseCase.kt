@@ -4,8 +4,9 @@ import android.util.Patterns
 import com.example.ecommerce.domain.repository.AuthRepository
 import com.example.ecommerce.domain.util.Result
 import com.example.ecommerce.domain.util.ValidationErrors
+import javax.inject.Inject
 
-class SignupUseCase(
+class SignupUseCase @Inject constructor(
     val repository: AuthRepository
 ) {
     suspend operator fun invoke(email: String, password: String, confirmPassword: String): Result<String> {

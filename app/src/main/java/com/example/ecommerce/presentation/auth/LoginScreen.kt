@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.ecommerce.domain.util.Result
 import com.example.ecommerce.domain.util.ValidationErrors
@@ -52,7 +53,7 @@ import com.example.ecommerce.ui.theme.Montserrat
 @Composable
 fun LoginScreen(
     navHostController: NavHostController,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel = hiltViewModel()
 ) {
 
     LaunchedEffect(Unit) {

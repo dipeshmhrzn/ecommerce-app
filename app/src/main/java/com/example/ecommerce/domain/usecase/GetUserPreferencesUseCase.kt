@@ -2,8 +2,9 @@ package com.example.ecommerce.domain.usecase
 
 import com.example.ecommerce.domain.repository.UserPreferencesRepository
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-class GetUserPreferencesUseCase(
+class GetUserPreferencesUseCase @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository
 ) {
 

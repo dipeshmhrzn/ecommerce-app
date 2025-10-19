@@ -48,9 +48,9 @@ fun OnBoardScreen3(navHostController: NavHostController) {
             TopBar(
                 pageNumber = "3",
                 onSkipClick = {
-                    navHostController.navigate(Routes.LoginScreen){
+                    navHostController.navigate(Routes.LoginScreen) {
                         popUpTo(0) {
-                            inclusive=true
+                            inclusive = true
                         }
                     }
                 }
@@ -60,9 +60,9 @@ fun OnBoardScreen3(navHostController: NavHostController) {
             BottomBar(
                 isLastPage = true,
                 onNextClick = {
-                    navHostController.navigate(Routes.LoginScreen){
-                        popUpTo(0){
-                            inclusive=true
+                    navHostController.navigate(Routes.LoginScreen) {
+                        popUpTo(0) {
+                            inclusive = true
                         }
                     }
                 },
@@ -71,7 +71,8 @@ fun OnBoardScreen3(navHostController: NavHostController) {
                 }
             )
         },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface
     ) {
 
         MiddleContext(

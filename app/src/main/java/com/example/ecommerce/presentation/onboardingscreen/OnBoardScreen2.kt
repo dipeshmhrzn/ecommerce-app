@@ -66,7 +66,8 @@ fun OnScreenBoard2(navHostController: NavHostController) {
                 }
             )
         },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface
     ) {
 
         MiddleContext(

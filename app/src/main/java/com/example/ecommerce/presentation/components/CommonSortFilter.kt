@@ -1,6 +1,7 @@
 package com.example.ecommerce.presentation.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -24,13 +25,21 @@ import androidx.compose.ui.unit.sp
 import com.example.ecommerce.ui.theme.Montserrat
 
 @Composable
-fun CommonSortFilter(text: String, icon: Painter) {
+fun CommonSortFilter(
+    modifier: Modifier = Modifier,
+    text: String,
+    icon: Painter,
+    onClick: () -> Unit = {}
+) {
     Box(
-        modifier = Modifier
-            .background(color = Color.White, shape = RoundedCornerShape(8.dp))
+        modifier = modifier
+            .background(color = Color.Gray.copy(alpha = .1f), shape = RoundedCornerShape(8.dp))
             .padding(8.dp)
             .height(20.dp)
-            .wrapContentWidth(),
+            .wrapContentWidth()
+            .clickable(onClick = {
+                onClick()
+            }),
         contentAlignment = Alignment.Center
     ) {
         Row(
