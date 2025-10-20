@@ -33,7 +33,7 @@ fun SplashScreen(
     LaunchedEffect(isLoading) {
         Log.d("SplashScreen", "isLoading: $isLoading")
         if (!isLoading){
-            delay(1500)
+            delay(1000)
             onFinish()
         }
     }

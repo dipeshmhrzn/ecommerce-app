@@ -1,6 +1,6 @@
 package com.example.ecommerce.presentation.home
 
-import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,17 +29,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.ecommerce.R
 import com.example.ecommerce.domain.util.Result
+import com.example.ecommerce.presentation.components.BannerCarousel
 import com.example.ecommerce.presentation.components.BottomNavItem
 import com.example.ecommerce.presentation.components.Categories
 import com.example.ecommerce.presentation.components.CustomTopBar
 import com.example.ecommerce.presentation.components.ProductCard
 import com.example.ecommerce.presentation.components.ProductToolBar
 import com.example.ecommerce.presentation.components.SearchBar
+import com.example.ecommerce.ui.theme.Montserrat
 
 @Composable
 fun HomeScreen(productViewModel: ProductViewModel = hiltViewModel()) {
@@ -53,28 +57,11 @@ fun HomeScreen(productViewModel: ProductViewModel = hiltViewModel()) {
         CategoryItem("Electronics", R.drawable.electronics)
     )
 
+    val context = LocalContext.current
+
     var searchQuery by remember { mutableStateOf("") }
 
-    val totalItems = productViewModel.totalItems
-
     val productState by productViewModel.productState.collectAsState()
-
-    val filteredProducts = when (val state = productState) {
-        is Result.Success -> {
-            if (searchQuery.isEmpty()) {
-                state.data.products
-            } else {
-                state.data.products.filter { product ->
-                    product.title.contains(searchQuery, ignoreCase = true) || product.category.contains(searchQuery, ignoreCase = true)
-                }
-            }
-        }
-
-        else -> {
-            emptyList()
-        }
-
-    }
 
     Scaffold(
         topBar = {
@@ -127,10 +114,11 @@ fun HomeScreen(productViewModel: ProductViewModel = hiltViewModel()) {
                     query = searchQuery,
                     onQueryChange = {
                         searchQuery = it
+                        productViewModel.searchProducts(searchQuery)
                     }
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                BannerCarousel()
 
                 LazyRow(
                     contentPadding = PaddingValues(12.dp),
@@ -152,36 +140,46 @@ fun HomeScreen(productViewModel: ProductViewModel = hiltViewModel()) {
                 Spacer(modifier = Modifier.height(20.dp))
             }
 
-            stickyHeader {
-                ProductToolBar(totalItems)
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-            when (productState) {
-
+            when (val state = productState) {
                 is Result.Success -> {
+                    val totalItems = state.data.size
 
-                    if (filteredProducts.isEmpty()) {
+                    stickyHeader {
+                        ProductToolBar(totalItems.toString())
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                }
+
+                else -> {
+                    stickyHeader {
+                        ProductToolBar("Loading")
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                }
+            }
+
+            when (val state = productState) {
+                is Result.Success -> {
+                    val products = state.data
+
+                    if (products.isEmpty()) {
                         item {
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .padding(32.dp),
+                                    .padding(16.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "No products found.",
-                                    fontSize = 18.sp,
-                                    color = Color.Gray
+                                    text = "No products found",
+                                    fontFamily = Montserrat,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 20.sp
                                 )
                             }
                         }
                     } else {
-                        val chunkedProducts = filteredProducts.chunked(2) // 2 per row
-
-                        Log.d("CategoryLog", filteredProducts.size.toString())
-                        filteredProducts.forEach { category ->
-                            Log.d("CategoryLog", category.category)
-                        }
+                        val chunkedProducts = products.chunked(2) // 2 per row
 
                         items(chunkedProducts) { rowItems ->
                             Row(
@@ -198,7 +196,13 @@ fun HomeScreen(productViewModel: ProductViewModel = hiltViewModel()) {
                                             .weight(1f)
                                             .background(Color.White, RoundedCornerShape(10.dp))
                                     ) {
-                                        ProductCard(product)
+                                        ProductCard(product, onClick = {
+                                            Toast.makeText(
+                                                context,
+                                                product.id.toString(),
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        })
                                     }
                                 }
                                 if (rowItems.size == 1) {
@@ -209,11 +213,7 @@ fun HomeScreen(productViewModel: ProductViewModel = hiltViewModel()) {
                     }
                 }
 
-                is Result.Error -> {
-                    item { Text("Error loading products.") }
-                }
-
-                is Result.Loading, Result.Idle -> {
+                is Result.Idle, Result.Loading -> {
                     item {
                         Box(
                             modifier = Modifier.fillMaxSize(),
@@ -227,9 +227,13 @@ fun HomeScreen(productViewModel: ProductViewModel = hiltViewModel()) {
                         }
                     }
                 }
+
+                is Result.Error -> {
+                    item {
+                        Text("Error Loading Products : ${state.message}")
+                    }
+                }
             }
-
-
         }
     }
 }

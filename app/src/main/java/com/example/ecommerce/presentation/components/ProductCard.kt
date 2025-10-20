@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,13 +38,16 @@ import com.example.ecommerce.data.dto.productdto.Product
 import com.example.ecommerce.ui.theme.Montserrat
 
 @Composable
-fun ProductCard(item: Product ) {
+fun ProductCard(
+    item: Product,
+    onClick: () -> Unit
+) {
 
     val context = LocalContext.current
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = {}),
+            .clickable(onClick = { onClick() }),
         shape = RoundedCornerShape(8.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
@@ -94,6 +98,8 @@ fun ProductCard(item: Product ) {
             Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = item.title,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 fontSize = 16.sp,
                 fontFamily = Montserrat,
                 fontWeight = FontWeight.Medium

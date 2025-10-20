@@ -32,7 +32,7 @@ fun ProductToolBar(totalItems: String) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = if (totalItems.isNotBlank()) "$totalItems items" else "Products",
+            text = "$totalItems items",
             fontFamily = Montserrat,
             fontWeight = FontWeight.SemiBold,
             fontSize = 20.sp,
