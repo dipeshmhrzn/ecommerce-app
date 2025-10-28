@@ -1,4 +1,4 @@
-package com.example.ecommerce.domain.usecase
+package com.example.ecommerce.domain.usecase.productusecase
 
 import com.example.ecommerce.data.dto.productdto.Product
 import com.example.ecommerce.domain.repository.ProductRepository

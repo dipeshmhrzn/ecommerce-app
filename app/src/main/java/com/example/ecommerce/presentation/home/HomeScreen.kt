@@ -1,6 +1,5 @@
 package com.example.ecommerce.presentation.home
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,30 +22,35 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import com.example.ecommerce.R
 import com.example.ecommerce.domain.util.Result
-import com.example.ecommerce.presentation.components.BannerCarousel
-import com.example.ecommerce.presentation.components.BottomNavItem
-import com.example.ecommerce.presentation.components.Categories
-import com.example.ecommerce.presentation.components.CustomTopBar
+import com.example.ecommerce.navigation.Routes
 import com.example.ecommerce.presentation.components.ProductCard
 import com.example.ecommerce.presentation.components.ProductToolBar
-import com.example.ecommerce.presentation.components.SearchBar
+import com.example.ecommerce.presentation.home.components.BannerCarousel
+import com.example.ecommerce.presentation.home.components.BottomNavItem
+import com.example.ecommerce.presentation.home.components.Categories
+import com.example.ecommerce.presentation.home.components.CustomTopBar
+import com.example.ecommerce.presentation.home.components.SearchBar
+import com.example.ecommerce.presentation.wishlist.WishListViewModel
 import com.example.ecommerce.ui.theme.Montserrat
 
 @Composable
-fun HomeScreen(productViewModel: ProductViewModel = hiltViewModel()) {
+fun HomeScreen(
+    navHostController: NavHostController,
+    productViewModel: ProductViewModel = hiltViewModel(),
+    wishlistViewModel: WishListViewModel = hiltViewModel()
+) {
 
     val categories = listOf(
         CategoryItem("Beauty", R.drawable.beauty),
@@ -57,11 +61,11 @@ fun HomeScreen(productViewModel: ProductViewModel = hiltViewModel()) {
         CategoryItem("Electronics", R.drawable.electronics)
     )
 
-    val context = LocalContext.current
-
-    var searchQuery by remember { mutableStateOf("") }
-
     val productState by productViewModel.productState.collectAsState()
+
+    val wishlistState by wishlistViewModel.state.collectAsState()
+    val wishlistCount = wishlistState.allProducts.size
+
 
     Scaffold(
         topBar = {
@@ -88,15 +92,23 @@ fun HomeScreen(productViewModel: ProductViewModel = hiltViewModel()) {
             ) {
                 navItems.forEachIndexed { index, item ->
                     BottomNavItem(
-                        item = item,
-                        isSelected = index == selectedItem,
                         isCenter = index == 2,
+                        isSelected = index == selectedItem,
+                        item = item,
+                        badgeCount = if (index==1) wishlistCount else 0,
                         onClick = {
                             selectedItem = index
-                        }
+
+                            when (index){
+                                1 -> navHostController.navigate(Routes.WishlistScreen)
+                                3 -> navHostController.navigate(Routes.SearchScreen)
+                                else -> {
+
+                                }
+                            }
+                        },
                     )
                 }
-
             }
         },
         containerColor = Color(0xFFF9F9F9)
@@ -110,13 +122,9 @@ fun HomeScreen(productViewModel: ProductViewModel = hiltViewModel()) {
             item {
                 Spacer(modifier = Modifier.height(16.dp))
 
-                SearchBar(
-                    query = searchQuery,
-                    onQueryChange = {
-                        searchQuery = it
-                        productViewModel.searchProducts(searchQuery)
-                    }
-                )
+                SearchBar (onClick = {
+                    navHostController.navigate(Routes.SearchScreen)
+                })
 
                 BannerCarousel()
 
@@ -173,7 +181,7 @@ fun HomeScreen(productViewModel: ProductViewModel = hiltViewModel()) {
                                 Text(
                                     text = "No products found",
                                     fontFamily = Montserrat,
-                                    fontWeight = FontWeight.SemiBold,
+                                    fontWeight = FontWeight.Medium,
                                     fontSize = 20.sp
                                 )
                             }
@@ -196,13 +204,15 @@ fun HomeScreen(productViewModel: ProductViewModel = hiltViewModel()) {
                                             .weight(1f)
                                             .background(Color.White, RoundedCornerShape(10.dp))
                                     ) {
-                                        ProductCard(product, onClick = {
-                                            Toast.makeText(
-                                                context,
-                                                product.id.toString(),
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        })
+                                        ProductCard(
+                                            item = product,
+                                            onClick = {
+                                                navHostController.navigate(
+                                                    Routes.ProductDetailScreen(
+                                                        id = product.id
+                                                    )
+                                                )
+                                            })
                                     }
                                 }
                                 if (rowItems.size == 1) {

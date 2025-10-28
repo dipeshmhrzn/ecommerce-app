@@ -1,16 +1,20 @@
 package com.example.ecommerce.data.dto.productdto
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import kotlinx.serialization.Serializable
 
 @Serializable
+@Entity(tableName = "wishlist_table")
 data class Product(
+    @PrimaryKey
+    val id: Int,
     val availabilityStatus: String,
     val brand: String? = null,
     val category: String,
     val description: String,
     val dimensions: Dimensions,
     val discountPercentage: Double,
-    val id: Int,
     val images: List<String>,
     val meta: Meta,
     val minimumOrderQuantity: Int,

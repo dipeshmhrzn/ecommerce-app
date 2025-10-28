@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ecommerce.domain.model.UserPreferencesState
-import com.example.ecommerce.domain.usecase.GetUserPreferencesUseCase
-import com.example.ecommerce.domain.usecase.SetUserPreferenceUseCase
+import com.example.ecommerce.domain.usecase.userprefusecase.GetUserPreferencesUseCase
+import com.example.ecommerce.domain.usecase.userprefusecase.SetUserPreferenceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

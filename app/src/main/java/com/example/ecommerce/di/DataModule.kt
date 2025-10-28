@@ -1,14 +1,25 @@
 package com.example.ecommerce.di
 
 import android.content.Context
+import androidx.room.Room
 import com.example.ecommerce.data.local.UserPreferencesDataStore
+import com.example.ecommerce.data.local.dao.WishlistDao
+import com.example.ecommerce.data.local.database.StylishDatabase
 import com.example.ecommerce.data.remote.ProductApiServices
 import com.example.ecommerce.data.repositoryimpl.AuthRepositoryImpl
 import com.example.ecommerce.data.repositoryimpl.ProductRepositoryImpl
 import com.example.ecommerce.data.repositoryimpl.UserPreferencesRepositoryImpl
+import com.example.ecommerce.data.repositoryimpl.WishlistRepositoryImpl
 import com.example.ecommerce.domain.repository.AuthRepository
 import com.example.ecommerce.domain.repository.ProductRepository
 import com.example.ecommerce.domain.repository.UserPreferencesRepository
+import com.example.ecommerce.domain.repository.WishlistRepository
+import com.example.ecommerce.domain.usecase.wishlistusecase.DeleteAllWishlistItemsUseCase
+import com.example.ecommerce.domain.usecase.wishlistusecase.DeleteFromWishlistUseCase
+import com.example.ecommerce.domain.usecase.wishlistusecase.GetAllWishListItemsUseCase
+import com.example.ecommerce.domain.usecase.wishlistusecase.InsertIntoWishlistUseCase
+import com.example.ecommerce.domain.usecase.wishlistusecase.IsItemInWishlistUseCase
+import com.example.ecommerce.domain.usecase.wishlistusecase.WishlistUseCases
 import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
 import dagger.Provides
@@ -20,7 +31,6 @@ import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
-import io.ktor.client.request.basicAuth
 import io.ktor.http.URLProtocol
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
@@ -91,6 +101,40 @@ object DataModule {
     @Singleton
     fun provideProductRepository(apiServices: ProductApiServices): ProductRepository{
         return ProductRepositoryImpl(apiServices)
+    }
+
+    @Provides
+    @Singleton
+    fun provideStylishDatabase(@ApplicationContext context: Context): StylishDatabase{
+        return Room.databaseBuilder(
+            context = context,
+            klass = StylishDatabase::class.java,
+            name = "stylish_database"
+        ).build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideWishlistDao(database: StylishDatabase): WishlistDao{
+        return database.wishlistDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideWishlistRepository(wishlistDao: WishlistDao): WishlistRepository{
+        return WishlistRepositoryImpl(wishlistDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideWishlistUseCases(repository: WishlistRepository): WishlistUseCases{
+        return WishlistUseCases(
+            getAllWishlistItems = GetAllWishListItemsUseCase(repository),
+            insertIntoWishlist = InsertIntoWishlistUseCase(repository),
+            deleteFromWishlist = DeleteFromWishlistUseCase(repository),
+            deleteAllWishlistItems = DeleteAllWishlistItemsUseCase(repository),
+            isItemInWishlist = IsItemInWishlistUseCase(repository)
+        )
     }
 
 }

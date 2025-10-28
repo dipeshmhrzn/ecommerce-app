@@ -29,13 +29,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.SubcomposeAsyncImage
-import coil.request.ImageRequest
+import coil3.compose.SubcomposeAsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.example.ecommerce.data.dto.productdto.Product
 import com.example.ecommerce.ui.theme.Montserrat
+import java.util.Locale
 
 @Composable
 fun ProductCard(
@@ -109,7 +110,7 @@ fun ProductCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Rs. ${String.format("%.2f", item.price * 141)}",
+                    text = "Rs. ${String.format(Locale.US,"%.2f", item.price * 141)}",
                     fontSize = 16.sp,
                     fontFamily = Montserrat,
                     fontWeight = FontWeight.Bold,
@@ -117,12 +118,12 @@ fun ProductCard(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "-${String.format("%.2f", item.discountPercentage)}%",
+                    text = "-${String.format(Locale.US,"%.2f", item.discountPercentage)}%",
                     fontSize = 12.sp,
                     fontFamily = Montserrat,
                     fontWeight = FontWeight.SemiBold,
                     color = Color(0xFFF83758),
-                    modifier = Modifier.background(color = Color(0xFFF83758).copy(alpha = .15f))
+                    modifier = Modifier.background(color = Color(0xFFF83758).copy(alpha = .1f))
                 )
             }
             Spacer(modifier = Modifier.height(6.dp))

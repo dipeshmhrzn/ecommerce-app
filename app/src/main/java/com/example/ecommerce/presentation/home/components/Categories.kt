@@ -1,4 +1,4 @@
-package com.example.ecommerce.presentation.components
+package com.example.ecommerce.presentation.home.components
 
 import android.widget.Toast
 import androidx.compose.foundation.Image

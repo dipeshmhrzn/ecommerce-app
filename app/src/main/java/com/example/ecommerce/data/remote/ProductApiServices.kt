@@ -5,7 +5,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
-import java.time.temporal.TemporalQuery
 
 class ProductApiServices(
     val httpClient: HttpClient
@@ -16,10 +15,9 @@ class ProductApiServices(
         }.body()
     }
 
-    suspend fun searchProducts(query: String): ProductDto{
+    suspend fun searchProducts(query: String): ProductDto {
         return httpClient.get("/products/search") {
             parameter("q", query)
         }.body()
     }
-
 }

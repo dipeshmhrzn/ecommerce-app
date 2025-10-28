@@ -1,7 +1,7 @@
-package com.example.ecommerce.presentation.components
+package com.example.ecommerce.presentation.search.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,7 +25,8 @@ import com.example.ecommerce.ui.theme.Montserrat
 @Composable
 fun SearchBar(
     query: String,
-    onQueryChange: (String) -> Unit
+    onQueryChange: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
 
     TextField(
@@ -56,10 +57,10 @@ fun SearchBar(
                 modifier = Modifier.size(20.dp)
             )
         },
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(start = 16.dp, end = 16.dp)
-            .height(50.dp)
+            .heightIn(min = 56.dp)
             .clip(RoundedCornerShape(16.dp)),
         singleLine = true,
         colors = TextFieldDefaults.colors(

@@ -1,4 +1,4 @@
-package com.example.ecommerce.domain.usecase
+package com.example.ecommerce.domain.usecase.authusecase
 
 import android.util.Patterns
 import com.example.ecommerce.domain.repository.AuthRepository

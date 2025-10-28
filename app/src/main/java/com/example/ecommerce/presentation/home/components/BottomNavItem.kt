@@ -1,4 +1,4 @@
-package com.example.ecommerce.presentation.components
+package com.example.ecommerce.presentation.home.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,13 +23,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ecommerce.presentation.home.BottomNavItemData
 import com.example.ecommerce.ui.theme.Montserrat
+import io.ktor.utils.io.bits.of
 
 @Composable
 fun BottomNavItem(
     isCenter: Boolean = false,
     isSelected: Boolean,
     item: BottomNavItemData,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    badgeCount: Int = 0
 ) {
 
     val modifier = if (isCenter) {
@@ -73,8 +76,27 @@ fun BottomNavItem(
             }
         }
 
-    }
+        if (badgeCount > 0) {
+            Box(
+                modifier = Modifier
+                    .size(height = 16.dp, width = 22.dp)
+                    .offset(x = -(3.dp), y = 4.dp)
+                    .background(Color(0xFFF83758), shape = RoundedCornerShape(8.dp))
+                    .align(Alignment.TopEnd)
+                    .offset(y = -(2.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = badgeCount.toString(),
+                    color = Color.White,
+                    fontFamily = Montserrat,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
 
+    }
 
 }
 

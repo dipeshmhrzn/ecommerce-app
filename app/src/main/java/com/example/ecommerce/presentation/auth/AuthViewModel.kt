@@ -3,10 +3,9 @@ package com.example.ecommerce.presentation.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ecommerce.domain.repository.UserPreferencesRepository
-import com.example.ecommerce.domain.usecase.LoginUseCase
-import com.example.ecommerce.domain.usecase.SignupUseCase
+import com.example.ecommerce.domain.usecase.authusecase.LoginUseCase
+import com.example.ecommerce.domain.usecase.authusecase.SignupUseCase
 import com.example.ecommerce.domain.util.Result
-import com.example.ecommerce.presentation.userpreferences.UserPreferencesViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

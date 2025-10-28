@@ -1,4 +1,4 @@
-package com.example.ecommerce.domain.usecase
+package com.example.ecommerce.domain.usecase.userprefusecase
 
 import com.example.ecommerce.domain.repository.UserPreferencesRepository
 import javax.inject.Inject
