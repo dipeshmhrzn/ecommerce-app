@@ -2,15 +2,18 @@ package com.example.ecommerce.di
 
 import android.content.Context
 import androidx.room.Room
-import com.example.ecommerce.data.local.UserPreferencesDataStore
+import com.example.ecommerce.data.local.datastore.UserPreferencesDataStore
 import com.example.ecommerce.data.local.dao.WishlistDao
 import com.example.ecommerce.data.local.database.StylishDatabase
+import com.example.ecommerce.data.local.datastore.CartDataStore
 import com.example.ecommerce.data.remote.ProductApiServices
 import com.example.ecommerce.data.repositoryimpl.AuthRepositoryImpl
+import com.example.ecommerce.data.repositoryimpl.CartRepositoryImpl
 import com.example.ecommerce.data.repositoryimpl.ProductRepositoryImpl
 import com.example.ecommerce.data.repositoryimpl.UserPreferencesRepositoryImpl
 import com.example.ecommerce.data.repositoryimpl.WishlistRepositoryImpl
 import com.example.ecommerce.domain.repository.AuthRepository
+import com.example.ecommerce.domain.repository.CartRepository
 import com.example.ecommerce.domain.repository.ProductRepository
 import com.example.ecommerce.domain.repository.UserPreferencesRepository
 import com.example.ecommerce.domain.repository.WishlistRepository
@@ -84,8 +87,8 @@ object DataModule {
             defaultRequest {
 
                 url {
-                    protocol= URLProtocol.HTTPS
-                    host="dummyjson.com"
+                    protocol = URLProtocol.HTTPS
+                    host = "dummyjson.com"
                 }
             }
         }
@@ -93,19 +96,19 @@ object DataModule {
 
     @Provides
     @Singleton
-    fun provideProductApiServices(httpClient: HttpClient): ProductApiServices{
+    fun provideProductApiServices(httpClient: HttpClient): ProductApiServices {
         return ProductApiServices(httpClient)
     }
 
     @Provides
     @Singleton
-    fun provideProductRepository(apiServices: ProductApiServices): ProductRepository{
+    fun provideProductRepository(apiServices: ProductApiServices): ProductRepository {
         return ProductRepositoryImpl(apiServices)
     }
 
     @Provides
     @Singleton
-    fun provideStylishDatabase(@ApplicationContext context: Context): StylishDatabase{
+    fun provideStylishDatabase(@ApplicationContext context: Context): StylishDatabase {
         return Room.databaseBuilder(
             context = context,
             klass = StylishDatabase::class.java,
@@ -115,19 +118,19 @@ object DataModule {
 
     @Provides
     @Singleton
-    fun provideWishlistDao(database: StylishDatabase): WishlistDao{
+    fun provideWishlistDao(database: StylishDatabase): WishlistDao {
         return database.wishlistDao()
     }
 
     @Provides
     @Singleton
-    fun provideWishlistRepository(wishlistDao: WishlistDao): WishlistRepository{
+    fun provideWishlistRepository(wishlistDao: WishlistDao): WishlistRepository {
         return WishlistRepositoryImpl(wishlistDao)
     }
 
     @Provides
     @Singleton
-    fun provideWishlistUseCases(repository: WishlistRepository): WishlistUseCases{
+    fun provideWishlistUseCases(repository: WishlistRepository): WishlistUseCases {
         return WishlistUseCases(
             getAllWishlistItems = GetAllWishListItemsUseCase(repository),
             insertIntoWishlist = InsertIntoWishlistUseCase(repository),
@@ -135,6 +138,18 @@ object DataModule {
             deleteAllWishlistItems = DeleteAllWishlistItemsUseCase(repository),
             isItemInWishlist = IsItemInWishlistUseCase(repository)
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideCartDataStore(@ApplicationContext context: Context): CartDataStore{
+        return CartDataStore(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCartRepository(cartDataStore: CartDataStore): CartRepository {
+        return CartRepositoryImpl(cartDataStore)
     }
 
 }

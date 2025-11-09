@@ -40,9 +40,15 @@ import com.example.ecommerce.R
 import com.example.ecommerce.data.dto.productdto.Product
 import com.example.ecommerce.ui.theme.Montserrat
 import java.util.Locale
+import kotlin.math.roundToInt
 
 @Composable
-fun WishlistCard(product: Product, onDeleteClick: () -> Unit, onItemClick: () -> Unit) {
+fun WishlistCard(
+    product: Product,
+    onDeleteClick: () -> Unit,
+    onItemClick: () -> Unit,
+    onCartClick: () -> Unit
+) {
 
     val context = LocalContext.current
 
@@ -122,7 +128,7 @@ fun WishlistCard(product: Product, onDeleteClick: () -> Unit, onItemClick: () ->
                         color = Color(0xFFF83758)
                     )
                     Text(
-                        text = String.format(Locale.US, "%.2f", product.price * 141),
+                        text = "${(product.price).roundToInt() * 141}",
                         fontSize = 20.sp,
                         fontFamily = Montserrat,
                         fontWeight = FontWeight.Bold,
@@ -138,13 +144,8 @@ fun WishlistCard(product: Product, onDeleteClick: () -> Unit, onItemClick: () ->
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
-                        text = "Rs. ${
-                            String.format(
-                                Locale.US,
-                                format = "%.2f",
-                                (product.price * 141) + ((product.discountPercentage / 100) * (product.price * 141))
-                            )
-                        }", fontSize = 14.sp,
+                        text = "Rs. ${((product.price * 141) + ((product.discountPercentage / 100) * (product.price * 141))).roundToInt()}",
+                        fontSize = 14.sp,
                         fontFamily = Montserrat,
                         fontWeight = FontWeight.Medium,
                         color = Color.Gray,
@@ -189,7 +190,7 @@ fun WishlistCard(product: Product, onDeleteClick: () -> Unit, onItemClick: () ->
                         onClick = onDeleteClick,
                         modifier = Modifier
                             .background(
-                                color = Color.Transparent,
+                                color = Color(0xFF323232).copy(.1f),
                                 shape = RoundedCornerShape(12.dp)
                             )
                             .size(40.dp)
@@ -203,7 +204,7 @@ fun WishlistCard(product: Product, onDeleteClick: () -> Unit, onItemClick: () ->
                         )
                     }
                     IconButton(
-                        onClick = { },
+                        onClick = onCartClick,
                         modifier = Modifier
                             .background(
                                 color = Color(0xFFF83758),

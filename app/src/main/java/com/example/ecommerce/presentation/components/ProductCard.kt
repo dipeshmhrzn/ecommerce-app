@@ -37,6 +37,7 @@ import coil3.request.crossfade
 import com.example.ecommerce.data.dto.productdto.Product
 import com.example.ecommerce.ui.theme.Montserrat
 import java.util.Locale
+import kotlin.math.roundToInt
 
 @Composable
 fun ProductCard(
@@ -110,7 +111,7 @@ fun ProductCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Rs. ${String.format(Locale.US,"%.2f", item.price * 141)}",
+                    text = "Rs. ${(item.price).roundToInt() * 141}",
                     fontSize = 16.sp,
                     fontFamily = Montserrat,
                     fontWeight = FontWeight.Bold,

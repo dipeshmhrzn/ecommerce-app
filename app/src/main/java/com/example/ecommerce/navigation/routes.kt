@@ -38,4 +38,7 @@ sealed class Routes {
     @Serializable
     data class ProductDetailScreen(val id: Int) : Routes()
 
+    @Serializable
+    data object CartScreen : Routes()
+
 }

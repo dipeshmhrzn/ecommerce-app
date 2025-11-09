@@ -35,6 +35,7 @@ import androidx.navigation.NavHostController
 import com.example.ecommerce.R
 import com.example.ecommerce.domain.util.Result
 import com.example.ecommerce.navigation.Routes
+import com.example.ecommerce.presentation.cart.CartViewModel
 import com.example.ecommerce.presentation.components.ProductCard
 import com.example.ecommerce.presentation.components.ProductToolBar
 import com.example.ecommerce.presentation.home.components.BannerCarousel
@@ -49,7 +50,8 @@ import com.example.ecommerce.ui.theme.Montserrat
 fun HomeScreen(
     navHostController: NavHostController,
     productViewModel: ProductViewModel = hiltViewModel(),
-    wishlistViewModel: WishListViewModel = hiltViewModel()
+    wishlistViewModel: WishListViewModel = hiltViewModel(),
+    cartViewModel: CartViewModel = hiltViewModel()
 ) {
 
     val categories = listOf(
@@ -65,6 +67,10 @@ fun HomeScreen(
 
     val wishlistState by wishlistViewModel.state.collectAsState()
     val wishlistCount = wishlistState.allProducts.size
+
+    val cartState by cartViewModel.state.collectAsState()
+    val cartCount = cartState.cartItems.sumOf { it.quantity }
+
 
 
     Scaffold(
@@ -95,13 +101,19 @@ fun HomeScreen(
                         isCenter = index == 2,
                         isSelected = index == selectedItem,
                         item = item,
-                        badgeCount = if (index==1) wishlistCount else 0,
+                        badgeCount = when(index) {
+                            1 -> wishlistCount
+                            2 -> cartCount  // cart count
+                            else -> 0
+                        },
                         onClick = {
                             selectedItem = index
 
-                            when (index){
+                            when (index) {
                                 1 -> navHostController.navigate(Routes.WishlistScreen)
+                                2 -> navHostController.navigate(Routes.CartScreen)
                                 3 -> navHostController.navigate(Routes.SearchScreen)
+
                                 else -> {
 
                                 }
@@ -122,7 +134,7 @@ fun HomeScreen(
             item {
                 Spacer(modifier = Modifier.height(16.dp))
 
-                SearchBar (onClick = {
+                SearchBar(onClick = {
                     navHostController.navigate(Routes.SearchScreen)
                 })
 
@@ -133,10 +145,10 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier
                         .padding(start = 16.dp, end = 16.dp)
+                        .fillMaxWidth()
                         .background(
                             color = Color.White,
                             shape = RoundedCornerShape(10.dp)
-
                         )
 
                 ) {

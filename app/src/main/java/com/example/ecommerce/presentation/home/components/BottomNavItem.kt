@@ -31,7 +31,7 @@ fun BottomNavItem(
     isSelected: Boolean,
     item: BottomNavItemData,
     onClick: () -> Unit,
-    badgeCount: Int = 0
+    badgeCount: Int = 0,
 ) {
 
     val modifier = if (isCenter) {
@@ -80,7 +80,7 @@ fun BottomNavItem(
             Box(
                 modifier = Modifier
                     .size(height = 16.dp, width = 22.dp)
-                    .offset(x = -(3.dp), y = 4.dp)
+                    .offset(x = -(2.dp), y = 4.dp)
                     .background(Color(0xFFF83758), shape = RoundedCornerShape(8.dp))
                     .align(Alignment.TopEnd)
                     .offset(y = -(2.dp)),
@@ -90,8 +90,8 @@ fun BottomNavItem(
                     text = badgeCount.toString(),
                     color = Color.White,
                     fontFamily = Montserrat,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.SemiBold
                 )
             }
         }

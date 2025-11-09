@@ -41,6 +41,7 @@ import com.example.ecommerce.R
 import com.example.ecommerce.data.dto.productdto.Product
 import com.example.ecommerce.ui.theme.Montserrat
 import java.util.Locale
+import kotlin.math.roundToInt
 
 @Composable
 fun ProductDetailCard(
@@ -75,20 +76,14 @@ fun ProductDetailCard(
                     color = Color(0xFFF83758)
                 )
                 Text(
-                    text = String.format(Locale.US, "%.2f", product.price * 141),
+                    text = "${(product.price).roundToInt() * 141}",
                     fontSize = 22.sp,
                     fontFamily = Montserrat,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFFF83758)
                 )
                 Text(
-                    text = "Rs. ${
-                        String.format(
-                            Locale.US,
-                            format = "%.2f",
-                            (product.price * 141) + ((product.discountPercentage / 100) * (product.price * 141))
-                        )
-                    }",
+                    text = "Rs. ${((product.price * 141) + ((product.discountPercentage / 100) * (product.price * 141))).roundToInt()}",
                     fontSize = 16.sp,
                     fontFamily = Montserrat,
                     fontWeight = FontWeight.Medium,

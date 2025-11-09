@@ -12,6 +12,7 @@ import androidx.navigation.toRoute
 import com.example.ecommerce.presentation.auth.ForgotPasswordScreen
 import com.example.ecommerce.presentation.auth.LoginScreen
 import com.example.ecommerce.presentation.auth.RegisterScreen
+import com.example.ecommerce.presentation.cart.CartScreen
 import com.example.ecommerce.presentation.home.HomeScreen
 import com.example.ecommerce.presentation.home.ProductDetailScreen
 import com.example.ecommerce.presentation.onboardingscreen.OnBoardScreen1
@@ -93,6 +94,10 @@ fun Navigation() {
 
         composable<Routes.WishlistScreen> {
             WishlistScreen(navHostController = navController)
+        }
+
+        composable<Routes.CartScreen>{
+            CartScreen(navHostController = navController)
         }
 
     }

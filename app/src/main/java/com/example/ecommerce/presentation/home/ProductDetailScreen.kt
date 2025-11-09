@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
@@ -55,13 +56,14 @@ import coil3.compose.SubcomposeAsyncImage
 import com.example.ecommerce.R
 import com.example.ecommerce.domain.util.Result
 import com.example.ecommerce.navigation.Routes
+import com.example.ecommerce.presentation.cart.CartViewModel
 import com.example.ecommerce.presentation.components.ProductCard
 import com.example.ecommerce.presentation.components.ProductDetailCard
 import com.example.ecommerce.presentation.components.ReviewCard
 import com.example.ecommerce.presentation.components.StarRatings
 import com.example.ecommerce.presentation.wishlist.WishListViewModel
 import com.example.ecommerce.ui.theme.Montserrat
-import java.util.Locale
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,10 +71,14 @@ fun ProductDetailScreen(
     id: Int,
     viewModel: ProductViewModel = hiltViewModel(),
     wishlistViewModel: WishListViewModel = hiltViewModel(),
+    cartViewModel: CartViewModel = hiltViewModel(),
     navHostController: NavHostController
 ) {
 
     val productState by viewModel.productState.collectAsState()
+
+    val cartState by cartViewModel.state.collectAsState()
+    val badgeCount = cartState.cartItems.sumOf { it.quantity }
 
     var isItemInWishlist by remember { mutableStateOf(false) }
 
@@ -83,7 +89,7 @@ fun ProductDetailScreen(
         else -> null
     }
 
-    val similarProducsts = when (val state = productState) {
+    val similarProducts = when (val state = productState) {
         is Result.Success -> {
             val currentId = state.data.find { it.id == id }
             currentId?.let { product ->
@@ -103,7 +109,13 @@ fun ProductDetailScreen(
     }
 
     LaunchedEffect(Unit) {
-        wishlistViewModel.uiEvent.collect { message->
+        cartViewModel.uiEvent.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        wishlistViewModel.uiEvent.collect { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     }
@@ -176,18 +188,47 @@ fun ProductDetailScreen(
                             }
                         }
 
-                        IconButton(
-                            onClick = { },
+                        Box(
                             modifier = Modifier
                                 .background(color = Color(0xFFF2F2F2), shape = CircleShape)
                                 .size(40.dp)
                         ) {
-                            Icon(
-                                painter = painterResource(R.drawable.cart),
-                                contentDescription = null,
-                                tint = Color(0xFF323232),
-                                modifier = Modifier.size(18.dp)
-                            )
+                            IconButton(
+                                onClick = {
+                                    navHostController.navigate(Routes.CartScreen)
+                                },
+                                modifier = Modifier.align(Alignment.Center)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.cart),
+                                    contentDescription = null,
+                                    tint = Color(0xFF323232),
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+
+                            if (badgeCount > 0) {
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .background(
+                                            Color(0xFFF83758),
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
+                                        .size(height = 16.dp, width = 22.dp)
+                                        .offset(y = -(3.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = badgeCount.toString(),
+                                        color = Color.White,
+                                        fontFamily = Montserrat,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+                            }
+
                         }
 
                     }
@@ -208,7 +249,11 @@ fun ProductDetailScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Button(
-                        onClick = { },
+                        onClick = {
+                            product?.let { product ->
+                                cartViewModel.addToCart(product, 1)
+                            }
+                        },
                         modifier = Modifier
                             .weight(1f)
                             .height(68.dp),
@@ -239,13 +284,7 @@ fun ProductDetailScreen(
                     ) {
                         if (product != null) {
                             Text(
-                                text = "Buy now at \nRs. ${
-                                    String.format(
-                                        Locale.US,
-                                        "%.2f",
-                                        product.price * 141
-                                    )
-                                }",
+                                text = "Buy now at \nRs. ${(product.price).roundToInt() * 141}",
                                 fontSize = 18.sp,
                                 color = Color.White,
                                 fontFamily = Montserrat,
@@ -371,7 +410,7 @@ fun ProductDetailScreen(
                     }
                     ProductDetailCard(
                         product = product,
-                        isItemInWishlist= isItemInWishlist,
+                        isItemInWishlist = isItemInWishlist,
                         onWishlistClick = {
                             if (isItemInWishlist) {
                                 wishlistViewModel.deleteFromWishList(product.id)
@@ -441,7 +480,7 @@ fun ProductDetailScreen(
                             modifier = Modifier
                                 .padding(6.dp)
                         )
-                        if (similarProducsts.isEmpty()) {
+                        if (similarProducts.isEmpty()) {
                             Text(
                                 text = "No similar products",
                                 fontSize = 20.sp,
@@ -450,7 +489,7 @@ fun ProductDetailScreen(
                                     .padding(bottom = 16.dp)
                             )
                         } else {
-                            val chunkedSimilarProduct = similarProducsts.chunked(2)
+                            val chunkedSimilarProduct = similarProducts.chunked(2)
 
                             chunkedSimilarProduct.forEach { rowItems ->
                                 Row(

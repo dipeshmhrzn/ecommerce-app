@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -54,12 +55,14 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.ecommerce.R
 import com.example.ecommerce.navigation.Routes
+import com.example.ecommerce.presentation.cart.CartViewModel
 import com.example.ecommerce.ui.theme.Montserrat
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WishlistScreen(
     viewModel: WishListViewModel = hiltViewModel(),
+    cartViewModel: CartViewModel = hiltViewModel(),
     navHostController: NavHostController
 ) {
 
@@ -67,10 +70,19 @@ fun WishlistScreen(
 
     val wishlistState by viewModel.state.collectAsState()
 
+    val cartState by cartViewModel.state.collectAsState()
+    val badgeCount = cartState.cartItems.sumOf { it.quantity }
+
     var searchQuery by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        cartViewModel.uiEvent.collect { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     }
@@ -144,18 +156,47 @@ fun WishlistScreen(
                         unfocusedIndicatorColor = Color.Transparent
                     )
                 )
-                IconButton(
-                    onClick = { },
+                Box(
                     modifier = Modifier
                         .background(color = Color(0xFFF2F2F2), shape = CircleShape)
                         .size(40.dp)
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.cart),
-                        contentDescription = null,
-                        tint = Color(0xFF323232),
-                        modifier = Modifier.size(18.dp)
-                    )
+                    IconButton(
+                        onClick = {
+                            navHostController.navigate(Routes.CartScreen)
+                        },
+                        modifier = Modifier.align(Alignment.Center)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.cart),
+                            contentDescription = null,
+                            tint = Color(0xFF323232),
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+
+                    if (badgeCount > 0) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .background(
+                                    Color(0xFFF83758),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .size(height = 16.dp, width = 22.dp)
+                                .offset(y = -(3.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = badgeCount.toString(),
+                                color = Color.White,
+                                fontFamily = Montserrat,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+
                 }
             }
         }
@@ -306,12 +347,15 @@ fun WishlistScreen(
 
                         items(wishlistState.filteredProducts) { product ->
                             WishlistCard(
-                                product,
+                                product = product,
                                 onDeleteClick = {
                                     viewModel.deleteFromWishList(id = product.id)
                                 },
                                 onItemClick = {
                                     navHostController.navigate(Routes.ProductDetailScreen(product.id))
+                                },
+                                onCartClick = {
+                                    cartViewModel.addToCart(product,1)
                                 }
                             )
                             Spacer(modifier = Modifier.height(16.dp))

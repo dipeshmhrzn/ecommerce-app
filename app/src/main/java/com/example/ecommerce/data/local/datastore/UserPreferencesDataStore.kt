@@ -1,4 +1,4 @@
-package com.example.ecommerce.data.local
+package com.example.ecommerce.data.local.datastore
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -19,11 +19,11 @@ class UserPreferencesDataStore(private val context: Context) {
         private val Is_Logged_In = booleanPreferencesKey("is_logged_in")
     }
 
-    val isFirstTimeLogin : Flow<Boolean> = context.dataStore.data.map {preferences ->
+    val isFirstTimeLogin : Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[Is_First_Time_Login] ?: true
     }
 
-    val isLoggedIn : Flow<Boolean> =context.dataStore.data.map {preferences ->
+    val isLoggedIn : Flow<Boolean> =context.dataStore.data.map { preferences ->
         preferences[Is_Logged_In] ?: false
     }
 
