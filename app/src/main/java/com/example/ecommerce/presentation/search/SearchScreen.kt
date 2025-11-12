@@ -38,10 +38,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.example.ecommerce.R
 import com.example.ecommerce.domain.util.Result
 import com.example.ecommerce.navigation.Routes
 import com.example.ecommerce.presentation.components.ProductCard
 import com.example.ecommerce.presentation.components.ProductToolBar
+import com.example.ecommerce.presentation.components.SortOption
 import com.example.ecommerce.presentation.search.components.SearchBar
 import com.example.ecommerce.ui.theme.Montserrat
 
@@ -57,6 +59,9 @@ fun SearchScreen(
     val focusRequester = remember { FocusRequester() }
 
     var searchQuery by remember { mutableStateOf("") }
+
+    var selectedSort by remember { mutableStateOf<SortOption?>(null) }
+
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
@@ -77,6 +82,10 @@ fun SearchScreen(
                     onQueryChange = {
                         searchQuery = it
                         searchViewModel.searchProducts(it, showAllOnBlank = false)
+                    },
+                    onSearchCancel = {
+                        searchQuery = ""
+                        searchViewModel.resetState()
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -119,7 +128,16 @@ fun SearchScreen(
                         val chunkedProduct = searchedProducts.chunked(2)
 
                         stickyHeader {
-                            ProductToolBar(totalItems.toString())
+                            ProductToolBar(totalItems.toString(),
+                                selectedSort=selectedSort,
+                                onSortClick = {order->
+                                    selectedSort = if (order) {
+                                        SortOption(ascending = true, iconRes = R.drawable.sortup)
+                                    } else {
+                                        SortOption(ascending = false, iconRes = R.drawable.sortdown)
+                                    }
+                                    searchViewModel.searchProducts(searchQuery, false, order)
+                                })
                             Spacer(modifier = Modifier.height(16.dp))
                         }
 

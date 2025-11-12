@@ -19,13 +19,22 @@ class ProductRepositoryImpl(
         }
     }
 
-    override suspend fun searchProducts(query: String): Result<List<Product>> {
+    override suspend fun searchProducts(query: String, order: String): Result<List<Product>> {
         return try {
-            val searchResponse = apiServices.searchProducts(query)
+            val searchResponse = apiServices.searchProducts(query = query, order = order)
             Result.Success(searchResponse.products)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
+            Result.Error("Error occurred : ${e.localizedMessage}")
+        }
+    }
+
+    override suspend fun sortProduct(order: String): Result<List<Product>> {
+        return try {
+            val sortResponse = apiServices.sortProducts(order = order)
+            Result.Success(sortResponse.products)
+        }catch (e:Exception){
             Result.Error("Error occurred : ${e.localizedMessage}")
         }
     }

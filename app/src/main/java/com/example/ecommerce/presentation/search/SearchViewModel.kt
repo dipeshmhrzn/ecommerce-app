@@ -31,7 +31,7 @@ class SearchViewModel @Inject constructor(
         "sunglasses", "tops", "beauty", "fragrances", "skin-care"
     )
 
-    fun searchProducts(query: String, showAllOnBlank: Boolean = true) {
+    fun searchProducts(query: String, showAllOnBlank: Boolean = true, order: Boolean? = null) {
 
         if (query.isBlank()) {
             searchJob?.cancel()
@@ -45,9 +45,10 @@ class SearchViewModel @Inject constructor(
         searchJob?.cancel()
 
         searchJob = viewModelScope.launch {
+            val orderType = if (order == true) "asc" else "desc"
             delay(400)
             _searchState.value = Result.Loading
-            val searchData = getSearchProductUseCase(query,showAllOnBlank)
+            val searchData = getSearchProductUseCase(query, showAllOnBlank, order = orderType)
             try {
                 when (searchData) {
                     is Result.Success -> {
@@ -69,11 +70,9 @@ class SearchViewModel @Inject constructor(
                     }
                 }
 
-            }
-            catch (e: CancellationException) {
+            } catch (e: CancellationException) {
                 throw e
-            }
-            catch (e: Exception) {
+            } catch (e: Exception) {
                 _searchState.value = Result.Error(e.localizedMessage ?: "Error occurred")
             }
         }

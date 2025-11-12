@@ -7,6 +7,8 @@ interface ProductRepository {
 
     suspend fun getProducts(): Result<List<Product>>
 
-    suspend fun searchProducts(query: String): Result<List<Product>>
+    suspend fun searchProducts(query: String,order: String): Result<List<Product>>
+
+    suspend fun sortProduct(order: String): Result<List<Product>>
 
 }

@@ -8,11 +8,11 @@ import javax.inject.Inject
 class SearchProductUseCase @Inject constructor(
     private val repository: ProductRepository
 ) {
-    suspend operator fun invoke(query: String,showAllOnBlank: Boolean = true): Result<List<Product>> {
+    suspend operator fun invoke(query: String,showAllOnBlank: Boolean = true,order: String): Result<List<Product>> {
         return if (query.isBlank()) {
             Result.Success(emptyList())
         } else {
-            repository.searchProducts(query)
+            repository.searchProducts(query, order = order)
         }
     }
 }

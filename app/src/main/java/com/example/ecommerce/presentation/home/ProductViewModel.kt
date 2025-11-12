@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ecommerce.data.dto.productdto.Product
 import com.example.ecommerce.domain.usecase.productusecase.GetProductsUseCase
+import com.example.ecommerce.domain.usecase.productusecase.SortProductUseCase
 import com.example.ecommerce.domain.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ProductViewModel @Inject constructor(
     val getProductsUseCase: GetProductsUseCase,
+    val sortProductUseCase: SortProductUseCase
 ) : ViewModel() {
 
     private val _productState = MutableStateFlow<Result<List<Product>>>(Result.Idle)
@@ -62,6 +64,41 @@ class ProductViewModel @Inject constructor(
             }
         }
 
+    }
+
+
+    fun sortProducts(order: Boolean) {
+        viewModelScope.launch {
+            _productState.value = Result.Loading
+            val orderType = if (order) "asc" else "desc"
+            try {
+                val sortData = sortProductUseCase(orderType)
+
+                when (sortData) {
+                    is Result.Success -> {
+                        val filteredProducts = filterProductsByCategory(sortData.data)
+                        _productState.value = Result.Success(filteredProducts)
+                    }
+
+                    is Result.Idle -> {
+                        _productState.value = Result.Idle
+                    }
+
+                    is Result.Loading -> {
+                        _productState.value = Result.Loading
+                    }
+
+                    is Result.Error -> {
+                        emptyList<Product>()
+                        _productState.value = Result.Error(sortData.message)
+                    }
+                }
+                Log.d("ProductViewModel", "getProducts: $sortData")
+            } catch (e: Exception) {
+                Log.d("ProductViewModel", "Error: ${e.localizedMessage}")
+                _productState.value = Result.Error(e.localizedMessage ?: "Error occurred")
+            }
+        }
     }
 
     private fun filterProductsByCategory(products: List<Product>): List<Product> {

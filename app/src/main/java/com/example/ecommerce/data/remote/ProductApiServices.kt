@@ -15,9 +15,20 @@ class ProductApiServices(
         }.body()
     }
 
-    suspend fun searchProducts(query: String): ProductDto {
+    suspend fun searchProducts(limit: Int = 0,query: String,order: String? = null): ProductDto {
         return httpClient.get("/products/search") {
             parameter("q", query)
+            parameter("limit", limit)
+            parameter("sortBy", "price")
+            parameter("order", order)
+        }.body()
+    }
+
+    suspend fun sortProducts(limit: Int = 0, order: String? = null): ProductDto {
+        return httpClient.get("/products") {
+            parameter("limit", limit)
+            parameter("sortBy", "price")
+            parameter("order", order)
         }.body()
     }
 }

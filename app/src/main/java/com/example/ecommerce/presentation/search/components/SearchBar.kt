@@ -1,11 +1,14 @@
 package com.example.ecommerce.presentation.search.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -24,9 +27,10 @@ import com.example.ecommerce.ui.theme.Montserrat
 
 @Composable
 fun SearchBar(
+    modifier: Modifier = Modifier,
     query: String,
     onQueryChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    onSearchCancel: () -> Unit = {}
 ) {
 
     TextField(
@@ -50,12 +54,18 @@ fun SearchBar(
             )
         },
         trailingIcon = {
-            Icon(
-                painter = painterResource(R.drawable.mic),
-                contentDescription = "Mic Icon",
-                tint = Color(0xFFBBBBBB),
-                modifier = Modifier.size(20.dp)
-            )
+            if (query.isNotBlank()){
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Cancel Search",
+                    tint = Color(0xFFBBBBBB),
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clickable {
+                            onSearchCancel()
+                        }
+                )
+            }
         },
         modifier = modifier
             .fillMaxWidth()

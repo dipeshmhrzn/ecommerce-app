@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -38,6 +39,7 @@ import com.example.ecommerce.navigation.Routes
 import com.example.ecommerce.presentation.cart.CartViewModel
 import com.example.ecommerce.presentation.components.ProductCard
 import com.example.ecommerce.presentation.components.ProductToolBar
+import com.example.ecommerce.presentation.components.SortOption
 import com.example.ecommerce.presentation.home.components.BannerCarousel
 import com.example.ecommerce.presentation.home.components.BottomNavItem
 import com.example.ecommerce.presentation.home.components.Categories
@@ -71,6 +73,7 @@ fun HomeScreen(
     val cartState by cartViewModel.state.collectAsState()
     val cartCount = cartState.cartItems.sumOf { it.quantity }
 
+    var selectedSort by remember { mutableStateOf<SortOption?>(null) }
 
 
     Scaffold(
@@ -101,7 +104,7 @@ fun HomeScreen(
                         isCenter = index == 2,
                         isSelected = index == selectedItem,
                         item = item,
-                        badgeCount = when(index) {
+                        badgeCount = when (index) {
                             1 -> wishlistCount
                             2 -> cartCount  // cart count
                             else -> 0
@@ -165,14 +168,24 @@ fun HomeScreen(
                     val totalItems = state.data.size
 
                     stickyHeader {
-                        ProductToolBar(totalItems.toString())
+                        ProductToolBar(
+                            selectedSort = selectedSort,
+                            totalItems = totalItems.toString(),
+                            onSortClick = { order ->
+                                selectedSort = if (order) {
+                                    SortOption(ascending = true, iconRes = R.drawable.sortup)
+                                } else {
+                                    SortOption(ascending = false, iconRes = R.drawable.sortdown)
+                                }
+                                productViewModel.sortProducts(order)
+                            })
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
 
                 else -> {
                     stickyHeader {
-                        ProductToolBar("Loading")
+                        ProductToolBar(selectedSort = selectedSort, totalItems = "Loading")
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
