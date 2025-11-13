@@ -1,6 +1,11 @@
 package com.example.ecommerce.presentation.search
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -32,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -44,6 +50,7 @@ import com.example.ecommerce.navigation.Routes
 import com.example.ecommerce.presentation.components.ProductCard
 import com.example.ecommerce.presentation.components.ProductToolBar
 import com.example.ecommerce.presentation.components.SortOption
+import com.example.ecommerce.presentation.home.components.Filter
 import com.example.ecommerce.presentation.search.components.SearchBar
 import com.example.ecommerce.ui.theme.Montserrat
 
@@ -57,168 +64,240 @@ fun SearchScreen(
     val searchState by searchViewModel.searchState.collectAsState()
 
     val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+
+    var minPrice by remember { mutableStateOf("") }
+    var maxPrice by remember { mutableStateOf("") }
+    var selectedRating by remember { mutableStateOf<Int?>(null) }
+
 
     var searchQuery by remember { mutableStateOf("") }
 
     var selectedSort by remember { mutableStateOf<SortOption?>(null) }
 
+    var isFilterVisible by remember { mutableStateOf(false) }
+
+    val isFilterApplied by searchViewModel.isFilterApplied.collectAsState()
+
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
 
-    Scaffold(
-        topBar = {
-
-            Box(
-                modifier = Modifier
-                    .padding(
-                        top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-                    )
-                    .padding(top = 16.dp, bottom = 16.dp)
-            ) {
-                SearchBar(
-                    query = searchQuery,
-                    onQueryChange = {
-                        searchQuery = it
-                        searchViewModel.searchProducts(it, showAllOnBlank = false)
-                    },
-                    onSearchCancel = {
-                        searchQuery = ""
-                        searchViewModel.resetState()
-                    },
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .focusRequester(focusRequester)
-                )
-            }
+                        .padding(
+                            top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+                        )
+                        .padding(top = 16.dp, bottom = 16.dp)
+                ) {
+                    SearchBar(
+                        query = searchQuery,
+                        onQueryChange = {
+                            searchQuery = it
+                            searchViewModel.searchProducts(it, showAllOnBlank = false)
+                        },
+                        onSearchCancel = {
+                            searchQuery = ""
+                            selectedSort=null
+                            searchViewModel.resetFilters()
+                            searchViewModel.resetState()
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(focusRequester)
+                    )
+                }
 
-        },
-        containerColor = Color(0xFFF9F9F9)
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize()
-        ) {
+            },
+            containerColor = Color(0xFFF9F9F9)
+        ) { paddingValues ->
+            LazyColumn(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+            ) {
 
-            when (val state = searchState) {
-                is Result.Success -> {
+                when (val state = searchState) {
+                    is Result.Success -> {
 
-                    val searchedProducts = state.data
-                    val totalItems = state.data.size
+                        val searchedProducts = state.data
+                        val totalItems = state.data.size
 
-                    if (searchedProducts.isEmpty()) {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(16.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
+                        if (searchedProducts.isEmpty()) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "No products found",
+                                        fontFamily = Montserrat,
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = 20.sp
+                                    )
+                                }
+                            }
+                        } else {
+                            val chunkedProduct = searchedProducts.chunked(2)
+
+                            stickyHeader {
+                                ProductToolBar(
+                                    totalItems = totalItems.toString(),
+                                    selectedSort = selectedSort,
+                                    onFilterClick = {
+                                        focusManager.clearFocus()
+                                        isFilterVisible = !isFilterVisible
+                                    },
+                                    onSortClick = { order ->
+                                        selectedSort = if (order) {
+                                            SortOption(
+                                                ascending = true,
+                                                iconRes = R.drawable.sortup
+                                            )
+                                        } else {
+                                            SortOption(
+                                                ascending = false,
+                                                iconRes = R.drawable.sortdown
+                                            )
+                                        }
+                                        searchViewModel.searchProducts(searchQuery, false, order)
+                                    },
+                                    isFilterApplied = isFilterApplied)
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
+
+                            items(items = chunkedProduct) { rowItems ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(start = 16.dp, end = 16.dp)
+                                        .padding(vertical = 8.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                ) {
+                                    rowItems.forEach { item ->
+                                        Box(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .background(Color.White, RoundedCornerShape(10.dp))
+                                        ) {
+                                            ProductCard(
+                                                item = item,
+                                                onClick = {
+                                                    navHostController.navigate(
+                                                        Routes.ProductDetailScreen(
+                                                            id = item.id
+                                                        )
+                                                    )
+                                                }
+                                            )
+                                        }
+                                    }
+                                    if (rowItems.size == 1) {
+                                        Spacer(modifier = Modifier.weight(1f))
+                                    }
+                                }
+                            }
+
+                        }
+
+                    }
+
+                    is Result.Idle -> {
+                        if (searchQuery.isBlank()) {
+                            item {
+                                Spacer(modifier = Modifier.height(150.dp))
                                 Text(
-                                    text = "No products found",
+                                    text = "Search any Product...",
+                                    fontSize = 20.sp,
                                     fontFamily = Montserrat,
                                     fontWeight = FontWeight.Medium,
-                                    fontSize = 20.sp
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
                                 )
                             }
                         }
-                    } else {
-                        val chunkedProduct = searchedProducts.chunked(2)
+                    }
 
-                        stickyHeader {
-                            ProductToolBar(totalItems.toString(),
-                                selectedSort=selectedSort,
-                                onSortClick = {order->
-                                    selectedSort = if (order) {
-                                        SortOption(ascending = true, iconRes = R.drawable.sortup)
-                                    } else {
-                                        SortOption(ascending = false, iconRes = R.drawable.sortdown)
-                                    }
-                                    searchViewModel.searchProducts(searchQuery, false, order)
-                                })
-                            Spacer(modifier = Modifier.height(16.dp))
-                        }
-
-                        items(items = chunkedProduct) { rowItems ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(start = 16.dp, end = 16.dp)
-                                    .padding(vertical = 8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    Result.Loading -> {
+                        item {
+                            Spacer(modifier = Modifier.height(100.dp))
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
                             ) {
-                                rowItems.forEach { item ->
-                                    Box(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .background(Color.White, RoundedCornerShape(10.dp))
-                                    ) {
-                                        ProductCard(
-                                            item = item,
-                                            onClick = {
-                                                navHostController.navigate(
-                                                    Routes.ProductDetailScreen(
-                                                        id = item.id
-                                                    )
-                                                )
-                                            }
-                                        )
-                                    }
-                                }
-                                if (rowItems.size == 1) {
-                                    Spacer(modifier = Modifier.weight(1f))
-                                }
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    strokeWidth = 2.dp
+                                )
+
                             }
                         }
-
                     }
 
-                }
-
-                is Result.Idle -> {
-                    if (searchQuery.isBlank()) {
+                    is Result.Error -> {
                         item {
-                            Spacer(modifier = Modifier.height(150.dp))
-                            Text(
-                                text = "Search any Product...",
-                                fontSize = 20.sp,
-                                fontFamily = Montserrat,
-                                fontWeight = FontWeight.Medium,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                            )
+                            Text("Error Loading Products : ${state.message}")
                         }
                     }
+
                 }
-
-                Result.Loading -> {
-                    item {
-                        Spacer(modifier = Modifier.height(100.dp))
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                strokeWidth = 2.dp
-                            )
-
-                        }
-                    }
-                }
-
-                is Result.Error -> {
-                    item {
-                        Text("Error Loading Products : ${state.message}")
-                    }
-                }
-
             }
+        }
+        if (isFilterVisible) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Gray.copy(alpha = .5f))
+                    .clickable {
+                        focusManager.clearFocus()
+                        isFilterVisible = false
+                    }
+            )
+        }
 
-
+        AnimatedVisibility(
+            visible = isFilterVisible,
+            enter = slideInVertically(
+                initialOffsetY = { it },
+                animationSpec = tween(durationMillis = 500)
+            ),
+            exit = slideOutVertically(
+                targetOffsetY = { it },
+                animationSpec = tween(durationMillis = 500)
+            ),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .clickable(enabled = false) {}
+        ) {
+            Filter(
+                minPrice = minPrice,
+                maxPrice = maxPrice,
+                selectedRating = selectedRating,
+                onApplyFilter = { minPrice, maxPrice, selectedRating ->
+                    searchViewModel.filterProducts(minPrice, maxPrice, selectedRating)
+                    focusManager.clearFocus()
+                    isFilterVisible = false
+                },
+                onFilterValuesChange = { newMinPrice, newMaxPrice, newSelectedRating ->
+                        minPrice = newMinPrice
+                        maxPrice = newMaxPrice
+                        selectedRating = newSelectedRating
+                },
+                onResetClick = {
+                    searchViewModel.resetFilters()
+                    focusManager.clearFocus()
+                    isFilterVisible = false
+                    selectedSort = null
+                }
+            )
         }
     }
 

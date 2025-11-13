@@ -1,5 +1,6 @@
 package com.example.ecommerce.presentation.search
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ecommerce.data.dto.productdto.Product
@@ -31,6 +32,16 @@ class SearchViewModel @Inject constructor(
         "sunglasses", "tops", "beauty", "fragrances", "skin-care"
     )
 
+    private var currentProductList: List<Product> = emptyList()
+    private var originalProductList: List<Product> = emptyList()
+
+    private var minPrice: Double = 0.0
+    private var maxPrice: Double = Double.MAX_VALUE
+
+    private val _isFilterApplied = MutableStateFlow(false)
+    val isFilterApplied = _isFilterApplied.asStateFlow()
+
+
     fun searchProducts(query: String, showAllOnBlank: Boolean = true, order: Boolean? = null) {
 
         if (query.isBlank()) {
@@ -45,28 +56,44 @@ class SearchViewModel @Inject constructor(
         searchJob?.cancel()
 
         searchJob = viewModelScope.launch {
-            val orderType = if (order == true) "asc" else "desc"
             delay(400)
             _searchState.value = Result.Loading
-            val searchData = getSearchProductUseCase(query, showAllOnBlank, order = orderType)
             try {
-                when (searchData) {
-                    is Result.Success -> {
-                        val filteredProducts = filterProductsByCategory(searchData.data)
-                        _searchState.value = Result.Success(filteredProducts)
+                if (currentProductList.isNotEmpty()) {
+                    val sortedData = if (order == true) {
+                        currentProductList.sortedBy { it.price }
+                    } else {
+                        currentProductList.sortedByDescending { it.price }
                     }
 
-                    is Result.Idle -> {
-                        _searchState.value = Result.Idle
-                    }
+                    currentProductList = sortedData
+                    _searchState.value = Result.Success(sortedData)
+                } else {
+                    val orderType = if (order == true) "asc" else "desc"
 
-                    is Result.Loading -> {
-                        _searchState.value = Result.Loading
-                    }
+                    val searchData =
+                        getSearchProductUseCase(query, showAllOnBlank, order = orderType)
 
-                    is Result.Error -> {
-                        emptyList<Product>()
-                        _searchState.value = Result.Error(searchData.message)
+                    when (searchData) {
+                        is Result.Success -> {
+                            val filteredProducts = filterProductsByCategory(searchData.data)
+                            currentProductList = filteredProducts
+                            originalProductList = filteredProducts
+                            _searchState.value = Result.Success(filteredProducts)
+                        }
+
+                        is Result.Idle -> {
+                            _searchState.value = Result.Idle
+                        }
+
+                        is Result.Loading -> {
+                            _searchState.value = Result.Loading
+                        }
+
+                        is Result.Error -> {
+                            emptyList<Product>()
+                            _searchState.value = Result.Error(searchData.message)
+                        }
                     }
                 }
 
@@ -78,9 +105,73 @@ class SearchViewModel @Inject constructor(
         }
     }
 
+    fun filterProducts(
+        min: Double? = null,
+        max: Double? = null,
+        selectedRating: Int? = null
+    ) {
+        viewModelScope.launch {
+            minPrice = min ?: 0.0
+            maxPrice = max ?: Double.MAX_VALUE
+
+            _searchState.value = Result.Loading
+            val productList = originalProductList
+            if (productList.isNotEmpty()) {
+
+                var filteredProducts = productList
+                filteredProducts = if (minPrice != 0.0 || maxPrice != Double.MAX_VALUE) {
+                    filterProductsByPrice(products = productList, minPrice, maxPrice)
+                } else {
+                    filteredProducts
+                }
+
+                filteredProducts = if (selectedRating != null) {
+                    filterProductsByRating(filteredProducts, selectedRating)
+                } else {
+                    filteredProducts
+                }
+
+                currentProductList = filteredProducts
+
+                _searchState.value = Result.Success(filteredProducts)
+
+                _isFilterApplied.value = true
+            }
+        }
+    }
+
+    fun resetFilters() {
+        minPrice = 0.0
+        maxPrice = Double.MAX_VALUE
+        _isFilterApplied.value = false
+        currentProductList = originalProductList
+        _searchState.value = Result.Success(currentProductList)
+    }
+
     private fun filterProductsByCategory(products: List<Product>): List<Product> {
         return products.filter { product ->
             product.category.lowercase() in allowedCategories
+        }
+    }
+
+    private fun filterProductsByPrice(
+        products: List<Product>,
+        minPrice: Double,
+        maxPrice: Double
+    ): List<Product> {
+        return products.filter { product ->
+            val productPrice = product.price * 141
+
+            productPrice in minPrice..maxPrice
+        }
+    }
+
+    private fun filterProductsByRating(
+        products: List<Product>,
+        selectedRating: Int
+    ): List<Product> {
+        return products.filter { product ->
+            product.rating >= selectedRating
         }
     }
 
