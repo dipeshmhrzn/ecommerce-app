@@ -1,7 +1,10 @@
 package com.example.ecommerce.di
 
 import android.content.Context
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
 import androidx.room.Room
+import com.example.ecommerce.R
 import com.example.ecommerce.data.local.datastore.UserPreferencesDataStore
 import com.example.ecommerce.data.local.dao.WishlistDao
 import com.example.ecommerce.data.local.database.StylishDatabase
@@ -23,6 +26,8 @@ import com.example.ecommerce.domain.usecase.wishlistusecase.GetAllWishListItemsU
 import com.example.ecommerce.domain.usecase.wishlistusecase.InsertIntoWishlistUseCase
 import com.example.ecommerce.domain.usecase.wishlistusecase.IsItemInWishlistUseCase
 import com.example.ecommerce.domain.usecase.wishlistusecase.WishlistUseCases
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
 import dagger.Provides
@@ -53,6 +58,34 @@ object DataModule {
     @Singleton
     fun provideAuthRepository(firebaseAuth: FirebaseAuth): AuthRepository {
         return AuthRepositoryImpl(firebaseAuth)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCredentialManager(@ApplicationContext context: Context): CredentialManager {
+        return CredentialManager.create(context)
+    }
+
+
+    @Provides
+    fun provideGoogleIdOption(
+        @ApplicationContext context: Context
+    ): GetGoogleIdOption {
+        return GetGoogleIdOption.Builder()
+            .setServerClientId(context.getString(R.string.web_client_id))
+            .setAutoSelectEnabled(false)
+            .setFilterByAuthorizedAccounts(false)
+            .build()
+    }
+
+
+    @Provides
+    fun provideGetCredentialRequest(
+        googleIdOption: GetGoogleIdOption
+    ): GetCredentialRequest {
+        return GetCredentialRequest.Builder()
+            .addCredentialOption(googleIdOption)
+            .build()
     }
 
     @Provides

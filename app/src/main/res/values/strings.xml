@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">ecommerce</string>
     <string name="onboarding_description">Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit.</string>
+    <string name="web_client_id">452372107113-97fsi2545u1ngif7s9dib737u7qll1pf.apps.googleusercontent.com</string>
 </resources>
