@@ -1,9 +1,12 @@
 package com.example.ecommerce.presentation.auth
 
 import android.content.Context
+import android.content.Intent
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.NoCredentialException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ecommerce.domain.repository.UserPreferencesRepository
@@ -20,12 +23,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import android.provider.Settings
+import com.example.ecommerce.domain.usecase.authusecase.ResetPasswordUseCase
+
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
     private val signupUseCase: SignupUseCase,
     private val googleSignInUseCase: GoogleSignInUseCase,
+    private val resetPasswordUseCase: ResetPasswordUseCase,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val credentialManager: CredentialManager,
     private val request: GetCredentialRequest,
@@ -34,9 +41,11 @@ class AuthViewModel @Inject constructor(
     private val _authState = MutableStateFlow<Result<String>>(Result.Idle)
     val authState = _authState.asStateFlow()
 
+    private val _openAddGoogleAccountEvent = MutableStateFlow(false)
+    val openAddGoogleAccountEvent = _openAddGoogleAccountEvent.asStateFlow()
+
     fun login(email: String, password: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            try {
                 _authState.emit(Result.Loading)
                 delay(500)
                 val result = loginUseCase(email, password)
@@ -45,16 +54,11 @@ class AuthViewModel @Inject constructor(
                     userPreferencesRepository.setLoggedIn(true)
                     userPreferencesRepository.setFirstTimeLogin(false)
                 }
-            } catch (e: Exception) {
-                _authState.value = Result.Error(e.localizedMessage ?: "Login Failed")
-            }
         }
     }
 
     fun signup(email: String, password: String, confirmPassword: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            try {
-                println("STATE: Loading")
                 _authState.emit(Result.Loading)
                 delay(500)
                 val result = signupUseCase(email, password, confirmPassword)
@@ -63,9 +67,6 @@ class AuthViewModel @Inject constructor(
                     userPreferencesRepository.setLoggedIn(false)
                     userPreferencesRepository.setFirstTimeLogin(false)
                 }
-            } catch (e: Exception) {
-                _authState.value = Result.Error(e.localizedMessage ?: "Signup Failed")
-            }
         }
     }
 
@@ -83,15 +84,36 @@ class AuthViewModel @Inject constructor(
                         userPreferencesRepository.setFirstTimeLogin(false)
                     }
                 }
-            } catch (e: androidx.credentials.exceptions.GetCredentialCancellationException) {
+            } catch (e: GetCredentialCancellationException) {
                 // User canceled the dialog → do nothing
-            } catch (e: androidx.credentials.exceptions.NoCredentialException) {
+            } catch (e: NoCredentialException) {
+                _openAddGoogleAccountEvent.value=true
                 // No Google account available
             } catch (e: Exception) {
                 // Unexpected error → only log or show a toast to avoid crash
                 e.printStackTrace()
             }
 
+        }
+    }
+
+    fun resetPassword(email: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _authState.emit(Result.Loading)
+            delay(500)
+            val result = resetPasswordUseCase(email)
+            _authState.value = result
+        }
+    }
+
+
+    fun resetAddGoogleAccountEvent() {
+        _openAddGoogleAccountEvent.value = false
+    }
+
+    fun getAddGoogleAccountIntent(): Intent {
+        return Intent(Settings.ACTION_ADD_ACCOUNT).apply {
+            putExtra(Settings.EXTRA_ACCOUNT_TYPES, arrayOf("com.google"))
         }
     }
 

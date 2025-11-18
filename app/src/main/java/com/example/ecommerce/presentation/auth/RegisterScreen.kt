@@ -1,5 +1,6 @@
 package com.example.ecommerce.presentation.auth
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -65,11 +67,17 @@ fun RegisterScreen(
     var passwordError by remember { mutableStateOf<String?>(null) }
     var confirmPasswordError by remember { mutableStateOf<String?>(null) }
 
+    val context = LocalContext.current
     val authState by authViewModel.authState.collectAsState()
+    val openAddGoogleAccountEvent by authViewModel.openAddGoogleAccountEvent.collectAsState()
 
     LaunchedEffect(authState) {
         when (authState) {
             is Result.Success -> {
+
+                val successMessage = (authState as Result.Success<String>).data
+                Toast.makeText(context, successMessage, Toast.LENGTH_SHORT).show()
+
                 navHostController.navigate(Routes.LoginScreen) {
                     popUpTo(Routes.RegisterScreen) {
                         inclusive = true
@@ -114,6 +122,14 @@ fun RegisterScreen(
                 passwordError=null
                 confirmPasswordError =null
             }
+        }
+    }
+
+    LaunchedEffect(openAddGoogleAccountEvent) {
+        if (openAddGoogleAccountEvent) {
+            val intent = authViewModel.getAddGoogleAccountIntent()
+            context.startActivity(intent)
+            authViewModel.resetAddGoogleAccountEvent()
         }
     }
 
@@ -225,7 +241,17 @@ fun RegisterScreen(
             Row(
                 horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()
             ) {
-                SocialLoginButtons()
+                SocialLoginButtons(
+                    onGoogleClick = {
+                        authViewModel.signInWithGoogle(context)
+                    },
+                    onAppleClick = {
+                        Toast.makeText(context,"Coming soon..", Toast.LENGTH_SHORT).show()
+                    },
+                    onFacebookClick = {
+                        Toast.makeText(context,"Coming soon..", Toast.LENGTH_SHORT).show()
+                    }
+                )
             }
             Spacer(modifier = Modifier.height(16.dp))
             Row(

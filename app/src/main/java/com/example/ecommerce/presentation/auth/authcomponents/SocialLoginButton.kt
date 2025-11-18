@@ -13,7 +13,9 @@ import com.example.ecommerce.R
 
 @Composable
 fun SocialLoginButtons(
-    onGoogleClick: () -> Unit = {}
+    onGoogleClick: () -> Unit = {},
+    onAppleClick: () -> Unit = {},
+    onFacebookClick: () -> Unit = {}
 ) {
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Image(
@@ -26,12 +28,16 @@ fun SocialLoginButtons(
         Image(
             painter = painterResource(R.drawable.apple),
             contentDescription = null,
-            modifier = Modifier.size(54.dp)
+            modifier = Modifier.size(54.dp).clickable{
+                onAppleClick()
+            }
         )
         Image(
             painter = painterResource(R.drawable.facebook),
             contentDescription = null,
-            modifier = Modifier.size(54.dp)
+            modifier = Modifier.size(54.dp).clickable{
+                onFacebookClick()
+            }
         )
     }
 }

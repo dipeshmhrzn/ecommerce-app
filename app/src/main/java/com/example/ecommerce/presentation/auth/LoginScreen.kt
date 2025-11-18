@@ -1,5 +1,7 @@
 package com.example.ecommerce.presentation.auth
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -65,11 +67,16 @@ fun LoginScreen(
 
     val context = LocalContext.current
     val authState by authViewModel.authState.collectAsState()
+    val openAddGoogleAccountEvent by authViewModel.openAddGoogleAccountEvent.collectAsState()
 
     LaunchedEffect(authState) {
 
         when (authState) {
             is Result.Success -> {
+
+                val successMessage = (authState as Result.Success<String>).data
+                Toast.makeText(context, successMessage, Toast.LENGTH_SHORT).show()
+
                 navHostController.navigate(Routes.HomeScreen) {
                     popUpTo(Routes.LoginScreen) {
                         inclusive = true
@@ -107,6 +114,14 @@ fun LoginScreen(
                 emailError = null
                 passwordError = null
             }
+        }
+    }
+
+    LaunchedEffect(openAddGoogleAccountEvent) {
+        if (openAddGoogleAccountEvent) {
+            val intent = authViewModel.getAddGoogleAccountIntent()
+            context.startActivity(intent)
+            authViewModel.resetAddGoogleAccountEvent()
         }
     }
 
@@ -192,6 +207,15 @@ fun LoginScreen(
                 SocialLoginButtons(
                     onGoogleClick = {
                         authViewModel.signInWithGoogle(context)
+                    },
+                    onAppleClick = {
+                        Log.d("AppleClick", "Apple clicked")
+
+
+                        Toast.makeText(context, "Coming soon..", Toast.LENGTH_SHORT).show()
+                    },
+                    onFacebookClick = {
+                        Toast.makeText(context, "Coming soon..", Toast.LENGTH_SHORT).show()
                     }
                 )
             }
