@@ -78,7 +78,7 @@ fun LoginScreen(
                 Toast.makeText(context, successMessage, Toast.LENGTH_SHORT).show()
 
                 navHostController.navigate(Routes.HomeScreen) {
-                    popUpTo(Routes.LoginScreen) {
+                    popUpTo(0) {
                         inclusive = true
                     }
                     launchSingleTop = true
