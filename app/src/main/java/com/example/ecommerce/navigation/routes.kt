@@ -41,4 +41,7 @@ sealed class Routes {
     @Serializable
     data object CartScreen : Routes()
 
+    @Serializable
+    data object SettingScreen : Routes()
+
 }

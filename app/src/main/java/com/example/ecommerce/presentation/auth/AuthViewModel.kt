@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import android.provider.Settings
+import com.example.ecommerce.domain.usecase.authusecase.LogoutUseCase
 import com.example.ecommerce.domain.usecase.authusecase.ResetPasswordUseCase
 
 
@@ -33,6 +34,7 @@ class AuthViewModel @Inject constructor(
     private val signupUseCase: SignupUseCase,
     private val googleSignInUseCase: GoogleSignInUseCase,
     private val resetPasswordUseCase: ResetPasswordUseCase,
+    private val logOutUseCase: LogoutUseCase,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val credentialManager: CredentialManager,
     private val request: GetCredentialRequest,
@@ -94,6 +96,20 @@ class AuthViewModel @Inject constructor(
                 e.printStackTrace()
             }
 
+        }
+    }
+
+    fun logout() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _authState.emit(Result.Loading)
+
+            val result = logOutUseCase()
+
+            if (result is Result.Success) {
+                userPreferencesRepository.setLoggedIn(false)
+            }
+
+            _authState.value = result
         }
     }
 

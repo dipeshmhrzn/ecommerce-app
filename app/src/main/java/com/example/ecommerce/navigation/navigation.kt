@@ -19,6 +19,7 @@ import com.example.ecommerce.presentation.onboardingscreen.OnBoardScreen1
 import com.example.ecommerce.presentation.onboardingscreen.OnBoardScreen3
 import com.example.ecommerce.presentation.onboardingscreen.OnScreenBoard2
 import com.example.ecommerce.presentation.search.SearchScreen
+import com.example.ecommerce.presentation.setting.SettingsScreen
 import com.example.ecommerce.presentation.splashscreen.SplashScreen
 import com.example.ecommerce.presentation.userpreferences.UserPreferencesViewModel
 import com.example.ecommerce.presentation.wishlist.WishlistScreen
@@ -98,6 +99,10 @@ fun Navigation() {
 
         composable<Routes.CartScreen>{
             CartScreen(navHostController = navController)
+        }
+
+        composable<Routes.SettingScreen>{
+            SettingsScreen(navHostController = navController)
         }
 
     }

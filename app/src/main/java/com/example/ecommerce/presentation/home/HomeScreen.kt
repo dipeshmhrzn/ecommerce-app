@@ -136,7 +136,7 @@ fun HomeScreen(
                                         1 -> navHostController.navigate(Routes.WishlistScreen)
                                         2 -> navHostController.navigate(Routes.CartScreen)
                                         3 -> navHostController.navigate(Routes.SearchScreen)
-
+                                        4-> navHostController.navigate(Routes.SettingScreen)
                                         else -> {
 
                                         }

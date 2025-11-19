@@ -47,4 +47,13 @@ class AuthRepositoryImpl(
         }
     }
 
+    override suspend fun logout(): Result<String> {
+        return try {
+            firebaseAuth.signOut() 
+            Result.Success("Logout successful")
+        } catch (e: Exception) {
+            Result.Error(e.localizedMessage ?: "Logout failed")
+        }
+    }
+
 }
