@@ -1,5 +1,6 @@
 package com.example.ecommerce.presentation.setting
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -8,6 +9,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,6 +31,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -54,9 +57,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import coil3.compose.AsyncImage
 import com.example.ecommerce.R
+import com.example.ecommerce.domain.model.UserProfile
 import com.example.ecommerce.domain.util.Result
-import com.example.ecommerce.domain.util.ValidationErrors
 import com.example.ecommerce.navigation.Routes
 import com.example.ecommerce.presentation.auth.AuthViewModel
 import com.example.ecommerce.presentation.cart.CartViewModel
@@ -65,17 +69,26 @@ import com.example.ecommerce.presentation.setting.components.SettingsTextField
 import com.example.ecommerce.presentation.wishlist.WishListViewModel
 import com.example.ecommerce.ui.theme.Montserrat
 import kotlinx.coroutines.delay
+import javax.annotation.meta.When
 
 @Composable
 fun SettingsScreen(
     authViewModel: AuthViewModel = hiltViewModel(),
     wishListViewModel: WishListViewModel = hiltViewModel(),
     cartViewModel: CartViewModel = hiltViewModel(),
+    settingsViewModel: SettingsViewModel = hiltViewModel(),
     navHostController: NavHostController
 ) {
 
+    LaunchedEffect(Unit) {
+        settingsViewModel.getUserProfile()
+    }
+
+
     val context = LocalContext.current
     val authState by authViewModel.authState.collectAsState()
+
+    val userProfileState by settingsViewModel.userProfile.collectAsState()
 
     val wishlistState by wishListViewModel.state.collectAsState()
     val wishlistCount = wishlistState.allProducts.size
@@ -88,6 +101,7 @@ fun SettingsScreen(
     var countdown by remember { mutableIntStateOf(0) }
     var isCountingDown by remember { mutableStateOf(false) }
     var isSuccess by remember { mutableStateOf(false) }
+
 
     LaunchedEffect(isCountingDown, isSuccess) {
         if (isCountingDown && isSuccess) {
@@ -128,311 +142,391 @@ fun SettingsScreen(
         }
     }
 
-    var fullName by remember { mutableStateOf("Anonymous") }
+    var fullName by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("**********") }
     var address by remember { mutableStateOf("") }
     var city by remember { mutableStateOf("") }
     var country by remember { mutableStateOf("") }
+    var profilePicture by remember { mutableStateOf("") }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-            topBar = {
-                Row(
-                    modifier = Modifier
-                        .padding(start = 16.dp, end = 16.dp, top = 8.dp)
-                        .statusBarsPadding()
-                        .fillMaxWidth()
-                        .background(color = Color.White, shape = RoundedCornerShape(8.dp))
-                        .padding(16.dp), verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.profile),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(90.dp)
-                            .clip(shape = CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
+    var isLoading by remember { mutableStateOf(false) }
 
-                    Spacer(modifier = Modifier.width(10.dp))
 
-                    Column {
-                        Text(
-                            text = fullName,
-                            fontFamily = Montserrat,
-                            fontSize = 25.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            TextButton(
-                                onClick = {
-                                    navHostController.navigate(Routes.WishlistScreen)
-                                }, contentPadding = PaddingValues(
-                                    start = 0.dp, end = 10.dp, top = 0.dp
-                                ), colors = ButtonDefaults.textButtonColors(
-                                    contentColor = Color.Gray
-                                )
-                            ) {
-                                Text(
-                                    text = "$wishlistCount WishList",
-                                    fontFamily = Montserrat,
-                                    fontSize = 18.sp,
-                                )
+    LaunchedEffect(userProfileState) {
+        when (userProfileState) {
+            is Result.Success -> {
+                val userProfile = (userProfileState as Result.Success<UserProfile?>).data
 
-                            }
-                            Text(
-                                text = "•",
-                                fontFamily = Montserrat,
-                                fontSize = 25.sp,
-                                color = Color.Gray,
-                            )
-
-                            TextButton(
-                                onClick = {
-                                    navHostController.navigate(Routes.CartScreen)
-                                }, contentPadding = PaddingValues(
-                                    start = 10.dp, end = 10.dp, top = 0.dp
-                                ), colors = ButtonDefaults.textButtonColors(
-                                    contentColor = Color.Gray
-                                )
-
-                            ) {
-                                Text(
-                                    text = "$cartCount Cart",
-                                    fontFamily = Montserrat,
-                                    fontSize = 18.sp,
-                                )
-                            }
-                        }
-                    }
+                if (fullName.isEmpty()) {
+                    fullName = userProfile?.displayName.takeIf { !it.isNullOrEmpty() } ?: "Anonymous"
                 }
-            }, bottomBar = {
-                if (!isLogoutVisible) {
-                    BottomAppBar(
-                        containerColor = Color.White
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp)
-                        ) {
-                            Button(
-                                onClick = {
-                                    isLogoutVisible = !isLogoutVisible
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(68.dp),
-                                shape = RoundedCornerShape(8.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.LightGray.copy(alpha = .5f)
-                                )
-                            ) {
-                                Text(
-                                    text = "Log Out",
-                                    fontSize = 18.sp,
-                                    color = Color(0xFFF83758),
-                                    fontFamily = Montserrat,
-                                    fontWeight = FontWeight.SemiBold,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        }
-                    }
-                }
-            }, containerColor = Color(0xFFF9F9F9)
-        ) { innerPadding ->
+                email = userProfile?.emailAddress ?: ""
+                address = userProfile?.address ?: ""
+                city = userProfile?.city ?: ""
+                country = userProfile?.country ?: ""
+                profilePicture = userProfile?.profilePicture ?: ""
 
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = 16.dp, top = 16.dp)
-            ) {
+                isLoading = false
+            }
 
-                SectionHeader("Personal Details")
+            is Result.Loading -> {
+                isLoading = true
+            }
 
-                Spacer(modifier = Modifier.height(12.dp))
-
-                SettingsTextField(
-                    label = "Full Name",
-                    value = fullName,
-                    onValueChange = { fullName = it },
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                SettingsTextField(
-                    label = "Email Address",
-                    value = "dipesh@gmail.com",
-                    onValueChange = { }, // Read-only, auto-populated from Firebase Auth
-                    enabled = false
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                SettingsTextField(
-                    label = "Password",
-                    value = password,
-                    onValueChange = { password = it },
-                    isPassword = true,
-                    trailingText = if (countdown == 0) "Reset Password" else "Resend in ${countdown}s",
-                    enabled = false,
-                    onTrailingClick = {
-                        if (countdown == 0) {
-                            authViewModel.resetPassword("dipesh1@gmail.com")
-                        }
-                    })
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Business Address Details Section
-                SectionHeader("Business Address Details")
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                SettingsTextField(
-                    label = "Address", value = address, onValueChange = { address = it })
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                SettingsTextField(
-                    label = "City", value = city, onValueChange = { city = it })
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                SettingsTextField(
-                    label = "Country", value = country, onValueChange = { country = it })
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                // Save Button
-                Button(
-                    onClick = {
-
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFF83758)
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                ) {
-                    Text(
-                        text = "Save",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
+            else -> {
+                isLoading = false
             }
         }
-        if (isLogoutVisible) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Gray.copy(alpha = .5f))
-                    .clickable {
-                        isLogoutVisible = false
-                    })
-        }
+    }
 
-        AnimatedVisibility(
-            visible = isLogoutVisible,
-            enter = slideInVertically(
-                initialOffsetY = { it },
-                animationSpec = tween(durationMillis = 500)
-            ),
-            exit = slideOutVertically(
-                targetOffsetY = { it },
-                animationSpec = tween(durationMillis = 500)
-            ),
-            modifier = Modifier
-                .clickable(enabled = false) {})
-        {
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (isLoading) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .background(Color(0xFFF9F9F9)),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
+                CircularProgressIndicator(
+                    color = Color(0xFFF83758),
+                    strokeWidth = 4.dp
+                )
+            }
+        } else {
+            Scaffold(
+                topBar = {
+                    Row(
+                        modifier = Modifier
+                            .padding(start = 16.dp, end = 16.dp, top = 8.dp)
+                            .statusBarsPadding()
+                            .fillMaxWidth()
+                            .background(color = Color.White, shape = RoundedCornerShape(8.dp))
+                            .padding(16.dp), verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (profilePicture.isNotBlank()) {
+                            AsyncImage(
+                                model = profilePicture,
+                                contentDescription = "Profile Picture",
+                                modifier = Modifier
+                                    .size(80.dp)
+                                    .clip(CircleShape)
+                                    .border(2.dp, Color(0xFFE0E0E0), CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Image(
+                                painter = painterResource(R.drawable.profile), // Default avatar
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(80.dp)
+                                    .clip(shape = CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(10.dp))
+
+                        Column {
+                            Text(
+                                text = fullName,
+                                fontFamily = Montserrat,
+                                fontSize = 25.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                TextButton(
+                                    onClick = {
+                                        navHostController.navigate(Routes.WishlistScreen)
+                                    }, contentPadding = PaddingValues(
+                                        start = 0.dp, end = 10.dp, top = 0.dp
+                                    ), colors = ButtonDefaults.textButtonColors(
+                                        contentColor = Color.Gray
+                                    )
+                                ) {
+                                    Text(
+                                        text = "$wishlistCount WishList",
+                                        fontFamily = Montserrat,
+                                        fontSize = 18.sp,
+                                    )
+
+                                }
+                                Text(
+                                    text = "•",
+                                    fontFamily = Montserrat,
+                                    fontSize = 25.sp,
+                                    color = Color.Gray,
+                                )
+
+                                TextButton(
+                                    onClick = {
+                                        navHostController.navigate(Routes.CartScreen)
+                                    }, contentPadding = PaddingValues(
+                                        start = 10.dp, end = 10.dp, top = 0.dp
+                                    ), colors = ButtonDefaults.textButtonColors(
+                                        contentColor = Color.Gray
+                                    )
+
+                                ) {
+                                    Text(
+                                        text = "$cartCount Cart",
+                                        fontFamily = Montserrat,
+                                        fontSize = 18.sp,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }, bottomBar = {
+                    if (!isLogoutVisible) {
+                        BottomAppBar(
+                            containerColor = Color.White
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp)
+                            ) {
+                                Button(
+                                    onClick = {
+                                        isLogoutVisible = !isLogoutVisible
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(68.dp),
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color.LightGray.copy(alpha = .5f)
+                                    )
+                                ) {
+                                    Text(
+                                        text = "Log Out",
+                                        fontSize = 18.sp,
+                                        color = Color(0xFFF83758),
+                                        fontFamily = Montserrat,
+                                        fontWeight = FontWeight.SemiBold,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }, containerColor = Color(0xFFF9F9F9)
+            ) { innerPadding ->
+
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.BottomCenter)
-                        .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
-                        .background(color = Color.White)
+                        .padding(innerPadding)
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 16.dp, top = 16.dp)
                 ) {
-                    Column(
+
+                    SectionHeader("Personal Details")
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    SettingsTextField(
+                        label = "Full Name",
+                        value = fullName,
+                        onValueChange = { fullName = it },
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    SettingsTextField(
+                        label = "Email Address",
+                        value = email,
+                        onValueChange = { }, // Read-only, auto-populated from Firebase Auth
+                        enabled = false
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    SettingsTextField(
+                        label = "Password",
+                        value = password,
+                        onValueChange = { password = it },
+                        isPassword = true,
+                        trailingText = if (countdown == 0) "Reset Password" else "Resend in ${countdown}s",
+                        enabled = false,
+                        onTrailingClick = {
+                            if (userProfileState !is Result.Loading) {
+                                if (countdown == 0) {
+                                    Log.d("userEmail", "SettingsScreen: $email")
+                                    authViewModel.resetPassword(email)
+                                }
+                            }
+                        })
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Business Address Details Section
+                    SectionHeader("Business Address Details")
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    SettingsTextField(
+                        label = "Address", value = address, onValueChange = { address = it })
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    SettingsTextField(
+                        label = "City", value = city, onValueChange = { city = it })
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    SettingsTextField(
+                        label = "Country", value = country, onValueChange = { country = it })
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    if (userProfileState is Result.Error) {
+                        Text(
+                            text = "Error: ${(userProfileState as Result.Error).message}",
+                            color = Color.Red,
+                            fontSize = 16.sp,
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
+                    }
+
+                    // Save Button
+                    Button(
+                        onClick = {
+                            val updatedUserProfile = UserProfile(
+                                displayName = fullName,
+                                emailAddress = email,
+                                address = address,
+                                city = city,
+                                country = country,
+                            )
+                            settingsViewModel.saveUserProfile(updatedUserProfile)
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .height(56.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFF83758)
+                        ),
+                        shape = RoundedCornerShape(8.dp),
                     ) {
                         Text(
-                            text = "Are you sure you want to log out ?",
-                            fontFamily = Montserrat,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 18.sp,
+                            text = "Save",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White
                         )
+                    }
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
+            if (isLogoutVisible) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Gray.copy(alpha = .5f))
+                        .clickable {
+                            isLogoutVisible = false
+                        })
+            }
 
-                        Row(
+            AnimatedVisibility(
+                visible = isLogoutVisible,
+                enter = slideInVertically(
+                    initialOffsetY = { it },
+                    animationSpec = tween(durationMillis = 500)
+                ),
+                exit = slideOutVertically(
+                    targetOffsetY = { it },
+                    animationSpec = tween(durationMillis = 500)
+                ),
+                modifier = Modifier
+                    .clickable(enabled = false) {})
+            {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.BottomCenter)
+                            .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                            .background(color = Color.White)
+                    ) {
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(bottom = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Button(
-                                shape = RoundedCornerShape(10.dp),
-                                modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.Transparent, contentColor = Color.Black
-                                ),
-                                border = BorderStroke(1.dp, Color.Black.copy(alpha = .4f)),
-                                onClick = {
-                                    isLogoutVisible = false
-                                }) {
-                                Text(
-                                    text = "No",
-                                    fontFamily = Montserrat,
-                                    fontWeight = FontWeight.Medium,
-                                    fontSize = 18.sp,
-                                )
-                            }
+                            Text(
+                                text = "Are you sure you want to log out ?",
+                                fontFamily = Montserrat,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 18.sp,
+                            )
 
-                            Button(
-                                shape = RoundedCornerShape(10.dp),
-                                modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFFF83758), contentColor = Color.White
-                                ),
-                                onClick = {
-                                    authViewModel.logout()
-                                    navHostController.navigate(Routes.LoginScreen) {
-                                        popUpTo(0) {
-                                            inclusive = true
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Button(
+                                    shape = RoundedCornerShape(10.dp),
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color.Transparent,
+                                        contentColor = Color.Black
+                                    ),
+                                    border = BorderStroke(1.dp, Color.Black.copy(alpha = .4f)),
+                                    onClick = {
+                                        isLogoutVisible = false
+                                    }) {
+                                    Text(
+                                        text = "No",
+                                        fontFamily = Montserrat,
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = 18.sp,
+                                    )
+                                }
+
+                                Button(
+                                    shape = RoundedCornerShape(10.dp),
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFFF83758),
+                                        contentColor = Color.White
+                                    ),
+                                    onClick = {
+                                        authViewModel.logout()
+                                        navHostController.navigate(Routes.LoginScreen) {
+                                            popUpTo(0) {
+                                                inclusive = true
+                                            }
+                                            launchSingleTop = true
                                         }
-                                        launchSingleTop = true
-                                    }
-                                    authViewModel.resetAuthState()
-                                    isLogoutVisible = false
-                                }) {
-                                Text(
-                                    text = "Yes",
-                                    fontFamily = Montserrat,
-                                    fontWeight = FontWeight.Medium,
-                                    fontSize = 18.sp,
-                                )
+                                        authViewModel.resetAuthState()
+                                        isLogoutVisible = false
+                                    }) {
+                                    Text(
+                                        text = "Yes",
+                                        fontFamily = Montserrat,
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = 18.sp,
+                                    )
+                                }
                             }
                         }
                     }

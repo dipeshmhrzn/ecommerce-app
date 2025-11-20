@@ -14,11 +14,13 @@ import com.example.ecommerce.data.repositoryimpl.AuthRepositoryImpl
 import com.example.ecommerce.data.repositoryimpl.CartRepositoryImpl
 import com.example.ecommerce.data.repositoryimpl.ProductRepositoryImpl
 import com.example.ecommerce.data.repositoryimpl.UserPreferencesRepositoryImpl
+import com.example.ecommerce.data.repositoryimpl.UserProfileRepositoryImplementation
 import com.example.ecommerce.data.repositoryimpl.WishlistRepositoryImpl
 import com.example.ecommerce.domain.repository.AuthRepository
 import com.example.ecommerce.domain.repository.CartRepository
 import com.example.ecommerce.domain.repository.ProductRepository
 import com.example.ecommerce.domain.repository.UserPreferencesRepository
+import com.example.ecommerce.domain.repository.UserProfileRepository
 import com.example.ecommerce.domain.repository.WishlistRepository
 import com.example.ecommerce.domain.usecase.wishlistusecase.DeleteAllWishlistItemsUseCase
 import com.example.ecommerce.domain.usecase.wishlistusecase.DeleteFromWishlistUseCase
@@ -26,9 +28,9 @@ import com.example.ecommerce.domain.usecase.wishlistusecase.GetAllWishListItemsU
 import com.example.ecommerce.domain.usecase.wishlistusecase.InsertIntoWishlistUseCase
 import com.example.ecommerce.domain.usecase.wishlistusecase.IsItemInWishlistUseCase
 import com.example.ecommerce.domain.usecase.wishlistusecase.WishlistUseCases
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -56,10 +58,18 @@ object DataModule {
 
     @Provides
     @Singleton
+    fun provideFirebaseFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
+    @Provides
+    @Singleton
     fun provideAuthRepository(firebaseAuth: FirebaseAuth): AuthRepository {
         return AuthRepositoryImpl(firebaseAuth)
     }
 
+    @Provides
+    @Singleton
+    fun provideUserProfileRepository(firestore: FirebaseFirestore): UserProfileRepository {
+        return UserProfileRepositoryImplementation(firestore)
+    }
     @Provides
     @Singleton
     fun provideCredentialManager(@ApplicationContext context: Context): CredentialManager {

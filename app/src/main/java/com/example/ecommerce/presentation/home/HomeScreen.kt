@@ -25,6 +25,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -54,6 +55,7 @@ import com.example.ecommerce.presentation.home.components.Categories
 import com.example.ecommerce.presentation.home.components.CustomTopBar
 import com.example.ecommerce.presentation.home.components.Filter
 import com.example.ecommerce.presentation.home.components.SearchBar
+import com.example.ecommerce.presentation.setting.SettingsViewModel
 import com.example.ecommerce.presentation.wishlist.WishListViewModel
 import com.example.ecommerce.ui.theme.Montserrat
 
@@ -62,8 +64,13 @@ fun HomeScreen(
     navHostController: NavHostController,
     productViewModel: ProductViewModel = hiltViewModel(),
     wishlistViewModel: WishListViewModel = hiltViewModel(),
+    settingsViewModel: SettingsViewModel=hiltViewModel(),
     cartViewModel: CartViewModel = hiltViewModel()
 ) {
+
+    LaunchedEffect(Unit) {
+        settingsViewModel.getUserProfile()
+    }
 
     val categories = listOf(
         CategoryItem("Beauty", R.drawable.beauty),
@@ -79,6 +86,10 @@ fun HomeScreen(
     var selectedRating by remember { mutableStateOf<Int?>(null) }
 
     var isFilterVisible by remember { mutableStateOf(false) }
+
+    val userProfile by settingsViewModel.userProfile.collectAsState()
+    val profilePictureUrl = (userProfile as? Result.Success)?.data?.profilePicture
+    val isLoading = userProfile is Result.Loading
 
     val productState by productViewModel.productState.collectAsState()
 
@@ -97,7 +108,10 @@ fun HomeScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             topBar = {
-                CustomTopBar()
+                CustomTopBar(
+                    profilePictureUrl = profilePictureUrl,
+                    isLoading = isLoading
+                )
             },
             bottomBar = {
 

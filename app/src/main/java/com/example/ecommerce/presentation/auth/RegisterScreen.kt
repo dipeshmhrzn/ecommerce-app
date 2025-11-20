@@ -46,11 +46,12 @@ import com.example.ecommerce.presentation.auth.authcomponents.CustomText
 import com.example.ecommerce.presentation.auth.authcomponents.CustomTextField
 import com.example.ecommerce.presentation.auth.authcomponents.SocialLoginButtons
 import com.example.ecommerce.ui.theme.Montserrat
+import com.google.firebase.auth.FirebaseUser
 
 @Composable
 fun RegisterScreen(
     navHostController: NavHostController,
-    authViewModel: AuthViewModel= hiltViewModel()
+    authViewModel: AuthViewModel = hiltViewModel()
 ) {
 
     LaunchedEffect(Unit) {
@@ -69,6 +70,7 @@ fun RegisterScreen(
 
     val context = LocalContext.current
     val authState by authViewModel.authState.collectAsState()
+    val googleAuthState by authViewModel.googleAuthState.collectAsState()
     val openAddGoogleAccountEvent by authViewModel.openAddGoogleAccountEvent.collectAsState()
 
     LaunchedEffect(authState) {
@@ -90,37 +92,74 @@ fun RegisterScreen(
                 val error = (authState as Result.Error).message
                 when (error) {
                     is ValidationErrors.EmailError -> {
-                        emailError=error.message
-                        passwordError=null
-                        confirmPasswordError =null
+                        emailError = error.message
+                        passwordError = null
+                        confirmPasswordError = null
                     }
+
                     is ValidationErrors.PasswordError -> {
-                        passwordError=error.message
-                        emailError=null
-                        confirmPasswordError =null
+                        passwordError = error.message
+                        emailError = null
+                        confirmPasswordError = null
                     }
+
                     is ValidationErrors.ConfirmPasswordError -> {
-                        confirmPasswordError=error.message
-                        passwordError=null
-                        emailError=null
+                        confirmPasswordError = error.message
+                        passwordError = null
+                        emailError = null
                     }
+
                     is String -> {
-                        emailError=null
-                        passwordError=null
-                        confirmPasswordError =error
+                        emailError = null
+                        passwordError = null
+                        confirmPasswordError = error
                     }
+
                     else -> {
-                        emailError=null
-                        passwordError=null
-                        confirmPasswordError =null
+                        emailError = null
+                        passwordError = null
+                        confirmPasswordError = null
                     }
                 }
             }
 
             Result.Idle, Result.Loading -> {
-                emailError=null
-                passwordError=null
-                confirmPasswordError =null
+                emailError = null
+                passwordError = null
+                confirmPasswordError = null
+            }
+        }
+    }
+
+    // Handle Google Auth state changes
+    LaunchedEffect(googleAuthState) {
+        when (googleAuthState) {
+            is Result.Success -> {
+                // Handle Google sign-in success
+                val firebaseUser = (googleAuthState as Result.Success<FirebaseUser>).data
+                Toast.makeText(context, "Google Sign-In Successful", Toast.LENGTH_SHORT).show()
+
+                navHostController.navigate(Routes.HomeScreen) {
+                    popUpTo(Routes.RegisterScreen) {
+                        inclusive = true
+                    }
+                    authViewModel.resetAuthState()
+                }
+            }
+
+            is Result.Error -> {
+                // Handle Google sign-in error
+                val errorMessage = (googleAuthState as Result.Error).message
+                Toast.makeText(context, "Error: $errorMessage", Toast.LENGTH_SHORT).show()
+            }
+
+            Result.Loading -> {
+                // Optionally show a loading spinner for Google sign-in
+                Toast.makeText(context, "Signing in with Google...", Toast.LENGTH_SHORT).show()
+            }
+
+            Result.Idle -> {
+                // Handle idle state if needed (optional)
             }
         }
     }
@@ -177,7 +216,7 @@ fun RegisterScreen(
                 leadingIcon = Icons.Default.Lock,
                 passwordVisible = passwordVisible,
                 onVisibilityToggle = { passwordVisible = !passwordVisible },
-                isError = passwordError!=null,
+                isError = passwordError != null,
                 supportingText = passwordError
             )
             Spacer(modifier = Modifier.height(16.dp))
@@ -191,7 +230,7 @@ fun RegisterScreen(
                 leadingIcon = Icons.Default.Lock,
                 passwordVisible = passwordVisible,
                 onVisibilityToggle = { passwordVisible = !passwordVisible },
-                isError = confirmPasswordError!=null,
+                isError = confirmPasswordError != null,
                 supportingText = confirmPasswordError
             )
             Spacer(modifier = Modifier.height(16.dp))
@@ -246,10 +285,10 @@ fun RegisterScreen(
                         authViewModel.signInWithGoogle(context)
                     },
                     onAppleClick = {
-                        Toast.makeText(context,"Coming soon..", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Coming soon..", Toast.LENGTH_SHORT).show()
                     },
                     onFacebookClick = {
-                        Toast.makeText(context,"Coming soon..", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Coming soon..", Toast.LENGTH_SHORT).show()
                     }
                 )
             }

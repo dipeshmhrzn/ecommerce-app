@@ -24,8 +24,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import android.provider.Settings
+import com.example.ecommerce.domain.model.UserProfile
+import com.example.ecommerce.domain.usecase.authusecase.GetCurrentUserIdUseCase
 import com.example.ecommerce.domain.usecase.authusecase.LogoutUseCase
 import com.example.ecommerce.domain.usecase.authusecase.ResetPasswordUseCase
+import com.example.ecommerce.domain.usecase.authusecase.UserProfileUseCase
+import com.google.firebase.auth.FirebaseUser
 
 
 @HiltViewModel
@@ -38,11 +42,15 @@ class AuthViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     private val credentialManager: CredentialManager,
     private val request: GetCredentialRequest,
+    private val getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
+    private val userProfileUseCase: UserProfileUseCase
 ) : ViewModel() {
 
     private val _authState = MutableStateFlow<Result<String>>(Result.Idle)
     val authState = _authState.asStateFlow()
 
+    private val _googleAuthState = MutableStateFlow<Result<FirebaseUser>>(Result.Idle)
+    val googleAuthState = _googleAuthState.asStateFlow()
     private val _openAddGoogleAccountEvent = MutableStateFlow(false)
     val openAddGoogleAccountEvent = _openAddGoogleAccountEvent.asStateFlow()
 
@@ -68,6 +76,12 @@ class AuthViewModel @Inject constructor(
                 if (result is Result.Success) {
                     userPreferencesRepository.setLoggedIn(false)
                     userPreferencesRepository.setFirstTimeLogin(false)
+
+                    val userProfile = UserProfile(
+                        userId = getCurrentUserIdUseCase(),
+                        emailAddress = email
+                    )
+                    userProfileUseCase.saveUserProfile(userProfile)
                 }
         }
     }
@@ -80,10 +94,20 @@ class AuthViewModel @Inject constructor(
                     val googleSignInToken = GoogleIdTokenCredential.createFrom(credentialResponse.credential.data)
                     val idToken = googleSignInToken.idToken
                     val result = googleSignInUseCase(idToken)
-                    _authState.value = result
+                    _googleAuthState.value = result
                     if (result is Result.Success) {
                         userPreferencesRepository.setLoggedIn(true)
                         userPreferencesRepository.setFirstTimeLogin(false)
+
+                        val firebaseUser = result.data
+                        val userProfile = UserProfile(
+                            userId = firebaseUser.uid,
+                            emailAddress = firebaseUser.email ?: "",
+                            displayName = firebaseUser.displayName ?: "",
+                            profilePicture = firebaseUser.photoUrl?.toString() ?: ""
+                        )
+
+                        userProfileUseCase.saveUserProfile(userProfile)
                     }
                 }
             } catch (e: GetCredentialCancellationException) {

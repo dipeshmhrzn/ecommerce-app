@@ -3,6 +3,7 @@ package com.example.ecommerce.data.repositoryimpl
 import com.example.ecommerce.domain.repository.AuthRepository
 import com.example.ecommerce.domain.util.Result
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.tasks.await
 
@@ -28,11 +29,15 @@ class AuthRepositoryImpl(
         }
     }
 
-    override suspend fun signInWithGoogle(idToken: String): Result<String> {
+    override suspend fun signInWithGoogle(idToken: String): Result<FirebaseUser> {
         return try {
             val credentials = GoogleAuthProvider.getCredential(idToken,null)
-            firebaseAuth.signInWithCredential(credentials).await()
-            Result.Success("Google SignIn Successful")
+            val user = firebaseAuth.signInWithCredential(credentials).await().user
+            if (user != null) {
+                Result.Success(user)  // Return the FirebaseUser object
+            } else {
+                Result.Error("Google sign-in failed: No user data available")
+            }
         }catch (e: Exception){
             Result.Error(e.localizedMessage ?: "Error occurred")
         }
@@ -54,6 +59,10 @@ class AuthRepositoryImpl(
         } catch (e: Exception) {
             Result.Error(e.localizedMessage ?: "Logout failed")
         }
+    }
+
+    override fun getCurrentUserId(): String? {
+        return firebaseAuth.currentUser?.uid
     }
 
 }
