@@ -64,7 +64,7 @@ fun HomeScreen(
     navHostController: NavHostController,
     productViewModel: ProductViewModel = hiltViewModel(),
     wishlistViewModel: WishListViewModel = hiltViewModel(),
-    settingsViewModel: SettingsViewModel=hiltViewModel(),
+    settingsViewModel: SettingsViewModel = hiltViewModel(),
     cartViewModel: CartViewModel = hiltViewModel()
 ) {
 
@@ -73,12 +73,12 @@ fun HomeScreen(
     }
 
     val categories = listOf(
+        CategoryItem("Men", R.drawable.mens),
+        CategoryItem("Eyewear", R.drawable.eyewear),
+        CategoryItem("Shoes", R.drawable.shoes),
+        CategoryItem("Accessories", R.drawable.accessories),
         CategoryItem("Beauty", R.drawable.beauty),
-        CategoryItem("Fashion", R.drawable.fashion),
-        CategoryItem("Kids", R.drawable.kids),
-        CategoryItem("Mens", R.drawable.mens),
-        CategoryItem("Womens", R.drawable.womens),
-        CategoryItem("Electronics", R.drawable.electronics)
+        CategoryItem("Women", R.drawable.womens)
     )
 
     var minPrice by remember { mutableStateOf("") }
@@ -100,6 +100,8 @@ fun HomeScreen(
     val cartCount = cartState.cartItems.sumOf { it.quantity }
 
     var selectedSort by remember { mutableStateOf<SortOption?>(null) }
+    var selectedCategory by remember { mutableStateOf<String?>(null) }
+
 
     val isFilterApplied by productViewModel.isFilterApplied.collectAsState()
 
@@ -150,7 +152,7 @@ fun HomeScreen(
                                         1 -> navHostController.navigate(Routes.WishlistScreen)
                                         2 -> navHostController.navigate(Routes.CartScreen)
                                         3 -> navHostController.navigate(Routes.SearchScreen)
-                                        4-> navHostController.navigate(Routes.SettingScreen)
+                                        4 -> navHostController.navigate(Routes.SettingScreen)
                                         else -> {
 
                                         }
@@ -191,7 +193,21 @@ fun HomeScreen(
 
                     ) {
                         items(categories) { category ->
-                            Categories(item = category)
+                            Categories(
+                                item = category,
+                                isSelected = selectedCategory == category.name,
+                                onClick = {
+                                    if (selectedCategory == category.name) {
+                                        // User clicked again → unselect
+                                        selectedCategory = null
+                                        productViewModel.getProducts()     // load all
+                                    } else {
+                                        // User clicked a new category → select
+                                        selectedCategory = category.name
+                                        productViewModel.filterByHomeCategory(category.name)
+                                    }
+                                }
+                            )
                         }
                     }
 

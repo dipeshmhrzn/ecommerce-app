@@ -2,12 +2,16 @@ package com.example.ecommerce.presentation.home.components
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,16 +28,24 @@ import com.example.ecommerce.presentation.home.CategoryItem
 import com.example.ecommerce.ui.theme.Montserrat
 
 @Composable
-fun Categories(item: CategoryItem) {
-    val context = LocalContext.current
-
+fun Categories(
+    item: CategoryItem,
+    isSelected: Boolean = false,
+    onClick: () -> Unit
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable {
-            // Show a toast when the category is clicked
-            Toast.makeText(context, "clicked ", Toast.LENGTH_SHORT).show()
-            // Add your custom action here, like navigating or filtering products
-        }
+        modifier = Modifier
+            .clickable {
+                onClick()
+            }
+            .background(Color.White, RoundedCornerShape(12.dp))
+            .border(
+                width = if (isSelected) 2.dp else 0.dp,
+                color = if (isSelected) Color.Black else Color.Transparent,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(12.dp)
     ) {
         Image(
             painter = painterResource(id = item.imageRes),

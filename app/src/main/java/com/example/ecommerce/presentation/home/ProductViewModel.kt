@@ -38,6 +38,18 @@ class ProductViewModel @Inject constructor(
         "sunglasses", "tops", "beauty", "fragrances", "skin-care"
     )
 
+    private val homeCategoryMap = mapOf(
+        "Men" to listOf("mens-shirts", "mens-shoes", "mens-watches"),
+        "Eyewear" to listOf("sunglasses"),
+        "Shoes" to listOf("mens-shoes", "womens-shoes"),
+        "Accessories" to listOf(
+            "mens-watches", "womens-watches", "womens-bags", "womens-jewellery"
+        ),
+        "Beauty" to listOf("beauty", "skin-care", "fragrances"),
+        "Women" to listOf("womens-dresses", "tops")
+    )
+
+
 
     init {
         getProducts()
@@ -77,6 +89,31 @@ class ProductViewModel @Inject constructor(
         }
 
     }
+
+    fun filterByHomeCategory(categoryName: String) {
+        viewModelScope.launch {
+            _productState.value = Result.Loading
+
+            val targetCategories = homeCategoryMap[categoryName] ?: emptyList()
+
+            val productsData = getProductsUseCase()
+
+            when (productsData) {
+                is Result.Success -> {
+                    val filtered = productsData.data.filter {
+                        it.category.lowercase() in targetCategories
+                    }
+
+                    currentProductList = filtered
+                    _productState.value = Result.Success(filtered)
+                }
+
+                is Result.Error -> _productState.value = Result.Error(productsData.message)
+                else -> Unit
+            }
+        }
+    }
+
 
     fun filterProductsByPrice(
         min: Double? = null,
