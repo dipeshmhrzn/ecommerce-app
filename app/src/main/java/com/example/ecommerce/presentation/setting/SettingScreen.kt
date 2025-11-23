@@ -1,6 +1,8 @@
 package com.example.ecommerce.presentation.setting
 
+import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Base64
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -225,7 +227,24 @@ fun SettingsScreen(
                             modifier = Modifier.size(80.dp)
                         ) {
 
-                            val displayImage = selectedImageUri ?: if (profilePicture.isNotBlank()) Uri.parse(profilePicture) else null
+                            val displayImage: Any? = when {
+                                selectedImageUri != null -> selectedImageUri
+                                profilePicture.isNotBlank() -> {
+                                    try {
+                                        val decodedBytes =
+                                            Base64.decode(profilePicture, Base64.DEFAULT)
+                                        BitmapFactory.decodeByteArray(
+                                            decodedBytes,
+                                            0,
+                                            decodedBytes.size
+                                        )
+                                    } catch (e: IllegalArgumentException) {
+                                        null
+                                    }
+                                }
+
+                                else -> null
+                            }
 
                             if (displayImage != null) {
                                 AsyncImage(
@@ -445,9 +464,12 @@ fun SettingsScreen(
                                 address = address,
                                 city = city,
                                 country = country,
-                                profilePicture = selectedImageUri?.toString() ?: profilePicture
+                                profilePicture = profilePicture
                             )
-                            settingsViewModel.saveUserProfile(updatedUserProfile)
+                            settingsViewModel.saveUserProfile(
+                                userProfile = updatedUserProfile,
+                                selectedImageUri = selectedImageUri
+                            )
                         },
                         modifier = Modifier
                             .fillMaxWidth()

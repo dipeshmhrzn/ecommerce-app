@@ -1,5 +1,6 @@
 package com.example.ecommerce.data.repositoryimpl
 
+import android.util.Base64
 import com.example.ecommerce.domain.model.UserProfile
 import com.example.ecommerce.domain.repository.UserProfileRepository
 import com.example.ecommerce.domain.util.Result
@@ -33,6 +34,9 @@ class UserProfileRepositoryImplementation(
         } catch (e: Exception) {
             Result.Error("Error saving user profile: ${e.message}")
         }
+    }
 
+    override suspend fun encodeToBase64(bytes: ByteArray): String {
+        return Base64.encodeToString(bytes, Base64.DEFAULT)
     }
 }
