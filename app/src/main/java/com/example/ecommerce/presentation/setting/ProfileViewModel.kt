@@ -1,20 +1,16 @@
 package com.example.ecommerce.presentation.setting
 
-import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ecommerce.domain.model.UserProfile
-import com.example.ecommerce.domain.repository.AuthRepository
 import com.example.ecommerce.domain.usecase.authusecase.GetCurrentUserIdUseCase
-import com.example.ecommerce.domain.usecase.authusecase.UserProfileUseCase
+import com.example.ecommerce.domain.usecase.settingusecase.UserProfileUseCase
+import com.example.ecommerce.domain.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import com.example.ecommerce.domain.util.Result
 
 
 @HiltViewModel

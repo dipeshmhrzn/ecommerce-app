@@ -1,7 +1,10 @@
 package com.example.ecommerce.presentation.setting
 
+import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
@@ -28,10 +31,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -151,7 +157,15 @@ fun SettingsScreen(
     var profilePicture by remember { mutableStateOf("") }
 
     var isLoading by remember { mutableStateOf(false) }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            selectedImageUri = it
+        }
+    }
 
     LaunchedEffect(userProfileState) {
         when (userProfileState) {
@@ -159,7 +173,8 @@ fun SettingsScreen(
                 val userProfile = (userProfileState as Result.Success<UserProfile?>).data
 
                 if (fullName.isEmpty()) {
-                    fullName = userProfile?.displayName.takeIf { !it.isNullOrEmpty() } ?: "Anonymous"
+                    fullName =
+                        userProfile?.displayName.takeIf { !it.isNullOrEmpty() } ?: "Anonymous"
                 }
                 email = userProfile?.emailAddress ?: ""
                 address = userProfile?.address ?: ""
@@ -205,26 +220,51 @@ fun SettingsScreen(
                             .background(color = Color.White, shape = RoundedCornerShape(8.dp))
                             .padding(16.dp), verticalAlignment = Alignment.CenterVertically
                     ) {
-                        if (profilePicture.isNotBlank()) {
-                            AsyncImage(
-                                model = profilePicture,
-                                contentDescription = "Profile Picture",
+
+                        Box(
+                            modifier = Modifier.size(80.dp)
+                        ) {
+
+                            val displayImage = selectedImageUri ?: if (profilePicture.isNotBlank()) Uri.parse(profilePicture) else null
+
+                            if (displayImage != null) {
+                                AsyncImage(
+                                    model = displayImage,
+                                    contentDescription = "Profile Picture",
+                                    modifier = Modifier
+                                        .size(80.dp)
+                                        .clip(CircleShape)
+                                        .border(2.dp, Color(0xFFE0E0E0), CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Image(
+                                    painter = painterResource(R.drawable.profile),
+                                    contentDescription = "Default Profile",
+                                    modifier = Modifier
+                                        .size(80.dp)
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+                            Box(
                                 modifier = Modifier
-                                    .size(80.dp)
+                                    .align(Alignment.BottomEnd)
+                                    .size(24.dp)
                                     .clip(CircleShape)
-                                    .border(2.dp, Color(0xFFE0E0E0), CircleShape),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Image(
-                                painter = painterResource(R.drawable.profile), // Default avatar
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(80.dp)
-                                    .clip(shape = CircleShape),
-                                contentScale = ContentScale.Crop
-                            )
+                                    .background(Color(0xFFF83758))
+                                    .clickable { galleryLauncher.launch("image/*") },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Edit Profile Picture",
+                                    modifier = Modifier.size(14.dp),
+                                    tint = Color.White
+                                )
+                            }
                         }
+
 
                         Spacer(modifier = Modifier.width(10.dp))
 
@@ -405,6 +445,7 @@ fun SettingsScreen(
                                 address = address,
                                 city = city,
                                 country = country,
+                                profilePicture = selectedImageUri?.toString() ?: profilePicture
                             )
                             settingsViewModel.saveUserProfile(updatedUserProfile)
                         },

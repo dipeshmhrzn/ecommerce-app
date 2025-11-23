@@ -1,4 +1,4 @@
-package com.example.ecommerce.domain.usecase.authusecase
+package com.example.ecommerce.domain.usecase.settingusecase
 
 import com.example.ecommerce.domain.model.UserProfile
 import com.example.ecommerce.domain.repository.UserProfileRepository

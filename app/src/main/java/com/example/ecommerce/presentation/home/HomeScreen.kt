@@ -198,11 +198,9 @@ fun HomeScreen(
                                 isSelected = selectedCategory == category.name,
                                 onClick = {
                                     if (selectedCategory == category.name) {
-                                        // User clicked again → unselect
                                         selectedCategory = null
-                                        productViewModel.getProducts()     // load all
+                                        productViewModel.getProducts()
                                     } else {
-                                        // User clicked a new category → select
                                         selectedCategory = category.name
                                         productViewModel.filterByHomeCategory(category.name)
                                     }
@@ -373,6 +371,7 @@ fun HomeScreen(
                     productViewModel.resetFilters()
                     isFilterVisible = false
                     selectedSort = null
+                    selectedCategory = null
                 }
             )
         }

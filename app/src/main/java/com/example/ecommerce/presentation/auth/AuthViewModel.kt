@@ -28,7 +28,7 @@ import com.example.ecommerce.domain.model.UserProfile
 import com.example.ecommerce.domain.usecase.authusecase.GetCurrentUserIdUseCase
 import com.example.ecommerce.domain.usecase.authusecase.LogoutUseCase
 import com.example.ecommerce.domain.usecase.authusecase.ResetPasswordUseCase
-import com.example.ecommerce.domain.usecase.authusecase.UserProfileUseCase
+import com.example.ecommerce.domain.usecase.settingusecase.UserProfileUseCase
 import com.google.firebase.auth.FirebaseUser
 
 
@@ -100,14 +100,23 @@ class AuthViewModel @Inject constructor(
                         userPreferencesRepository.setFirstTimeLogin(false)
 
                         val firebaseUser = result.data
-                        val userProfile = UserProfile(
-                            userId = firebaseUser.uid,
-                            emailAddress = firebaseUser.email ?: "",
-                            displayName = firebaseUser.displayName ?: "",
-                            profilePicture = firebaseUser.photoUrl?.toString() ?: ""
-                        )
 
-                        userProfileUseCase.saveUserProfile(userProfile)
+                        val existingProfile = userProfileUseCase.getUserProfile(firebaseUser.uid)
+
+                        if (existingProfile is Result.Success && existingProfile.data != null) {
+
+                            // User profile exists - don't overwrite anything
+
+                        } else {
+                            // First time sign in - create new profile
+                            val userProfile = UserProfile(
+                                userId = firebaseUser.uid,
+                                emailAddress = firebaseUser.email ?: "",
+                                displayName = firebaseUser.displayName ?: "",
+                                profilePicture = firebaseUser.photoUrl?.toString() ?: ""
+                            )
+                            userProfileUseCase.saveUserProfile(userProfile)
+                        }
                     }
                 }
             } catch (e: GetCredentialCancellationException) {
