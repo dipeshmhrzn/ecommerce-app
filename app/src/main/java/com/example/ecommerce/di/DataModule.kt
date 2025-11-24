@@ -36,6 +36,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.createSupabaseClient
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpTimeout
@@ -45,6 +47,8 @@ import io.ktor.http.URLProtocol
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import javax.inject.Singleton
+import com.example.ecommerce.BuildConfig
+import io.github.jan.supabase.storage.Storage
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -59,6 +63,7 @@ object DataModule {
     @Provides
     @Singleton
     fun provideFirebaseFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
+
     @Provides
     @Singleton
     fun provideAuthRepository(firebaseAuth: FirebaseAuth): AuthRepository {
@@ -67,9 +72,10 @@ object DataModule {
 
     @Provides
     @Singleton
-    fun provideUserProfileRepository(firestore: FirebaseFirestore): UserProfileRepository {
-        return UserProfileRepositoryImplementation(firestore)
+    fun provideUserProfileRepository(firestore: FirebaseFirestore, supabaseClient: SupabaseClient): UserProfileRepository {
+        return UserProfileRepositoryImplementation(firestore,supabaseClient)
     }
+
     @Provides
     @Singleton
     fun provideCredentialManager(@ApplicationContext context: Context): CredentialManager {
@@ -185,7 +191,7 @@ object DataModule {
 
     @Provides
     @Singleton
-    fun provideCartDataStore(@ApplicationContext context: Context): CartDataStore{
+    fun provideCartDataStore(@ApplicationContext context: Context): CartDataStore {
         return CartDataStore(context)
     }
 
@@ -194,5 +200,19 @@ object DataModule {
     fun provideCartRepository(cartDataStore: CartDataStore): CartRepository {
         return CartRepositoryImpl(cartDataStore)
     }
+
+    @Provides
+    @Singleton
+    fun provideSupaBaseClient(): SupabaseClient {
+        return createSupabaseClient(
+            supabaseUrl = BuildConfig.SUPABASE_URL,
+            supabaseKey = BuildConfig.SUPABASE_ANON_KEY
+        ) {
+
+            install(Storage)
+
+        }
+    }
+
 
 }

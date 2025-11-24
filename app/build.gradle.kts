@@ -4,11 +4,10 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    kotlin("plugin.serialization") version "2.0.21"
+    kotlin("plugin.serialization") version "2.1.0"
     alias(libs.plugins.google.gms.google.services)
     id("com.google.dagger.hilt.android") version "2.57.1"
     id("com.google.devtools.ksp")
-
 }
 
 android {
@@ -25,18 +24,21 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        val properties = Properties()
-        properties.load(project.rootProject.file("local.properties").inputStream())
+        val props = Properties()
+        val propsFile = rootProject.file("local.properties")
+        if (propsFile.exists()) {
+            props.load(propsFile.inputStream())
+        }
 
         buildConfigField(
             "String",
             "SUPABASE_URL",
-            "\"${properties.getProperty("SUPABASE_URL")}\""
+            "\"${props.getProperty("SUPABASE_URL", "")}\""
         )
         buildConfigField(
             "String",
             "SUPABASE_ANON_KEY",
-            "\"${properties.getProperty("SUPABASE_ANON_KEY")}\""
+            "\"${props.getProperty("SUPABASE_ANON_KEY", "")}\""
         )
     }
 
@@ -58,6 +60,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -104,16 +107,29 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
 
-    implementation("io.ktor:ktor-client-core:2.3.4")
-    implementation("io.ktor:ktor-client-cio:2.3.4")
-    implementation("io.ktor:ktor-client-content-negotiation:2.3.4")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.4")
-    implementation("io.ktor:ktor-client-logging:2.3.4")
+//    implementation("io.ktor:ktor-client-core:2.3.4")
+//    implementation("io.ktor:ktor-client-cio:2.3.4")
+//    implementation("io.ktor:ktor-client-content-negotiation:2.3.4")
+//    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.4")
+//    implementation("io.ktor:ktor-client-logging:2.3.4")
 
-    implementation("androidx.room:room-runtime:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
-    ksp("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-runtime:2.7.0")
+    implementation("androidx.room:room-ktx:2.7.0")
+    ksp("androidx.room:room-compiler:2.7.0")
 
+//    val supabaseVersion = "3.2.0-ksp-b1"
+//    implementation("io.github.jan-tennert.supabase:auth-kt:$supabaseVersion")
+//    implementation("io.github.jan-tennert.supabase:storage-kt:$supabaseVersion")
+
+    val ktorVersion = "3.2.2"
+
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("io.ktor:ktor-client-cio:$ktorVersion")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-client-logging:$ktorVersion")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+
+    // ---------- Supabase ----------
     implementation(platform("io.github.jan-tennert.supabase:bom:3.2.2"))
     implementation("io.github.jan-tennert.supabase:storage-kt")
     implementation("io.github.jan-tennert.supabase:auth-kt")

@@ -16,4 +16,12 @@ class UserProfileUseCase @Inject constructor(
     suspend fun getUserProfile(userId: String): Result<UserProfile?> {
         return userProfileRepository.getUserProfile(userId)
     }
+
+    suspend fun uploadProfileImage(
+        userId: String,
+        bytes: ByteArray,
+        mimeType: String
+    ): Result<String> {
+        return userProfileRepository.uploadProfileImage(userId, bytes, mimeType)
+    }
 }

@@ -227,24 +227,8 @@ fun SettingsScreen(
                             modifier = Modifier.size(80.dp)
                         ) {
 
-                            val displayImage: Any? = when {
-                                selectedImageUri != null -> selectedImageUri
-                                profilePicture.isNotBlank() -> {
-                                    try {
-                                        val decodedBytes =
-                                            Base64.decode(profilePicture, Base64.DEFAULT)
-                                        BitmapFactory.decodeByteArray(
-                                            decodedBytes,
-                                            0,
-                                            decodedBytes.size
-                                        )
-                                    } catch (e: IllegalArgumentException) {
-                                        null
-                                    }
-                                }
-
-                                else -> null
-                            }
+                            val displayImage: Uri? = selectedImageUri
+                                ?: profilePicture.takeIf { it.isNotBlank() }?.let { Uri.parse(it) }
 
                             if (displayImage != null) {
                                 AsyncImage(

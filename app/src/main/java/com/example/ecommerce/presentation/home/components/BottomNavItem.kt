@@ -23,8 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ecommerce.presentation.home.BottomNavItemData
 import com.example.ecommerce.ui.theme.Montserrat
-import io.ktor.utils.io.bits.of
-
 @Composable
 fun BottomNavItem(
     isCenter: Boolean = false,

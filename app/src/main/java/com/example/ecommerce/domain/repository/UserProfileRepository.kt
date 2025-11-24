@@ -7,5 +7,9 @@ interface UserProfileRepository {
     suspend fun saveUserProfile(userProfile: UserProfile): Result<String>
     suspend fun getUserProfile(userId: String): Result<UserProfile>
 
-    suspend fun encodeToBase64(bytes: ByteArray): String
+    suspend fun uploadProfileImage(
+        userId: String,
+        bytes: ByteArray,
+        mimeType: String
+    ): Result<String>
 }
