@@ -131,7 +131,9 @@ fun CartScreen(
                     onAllSelectionToggle = {
                         viewModel.toggleAllSelection()
                     },
-                    onCheckout = { }
+                    onCheckout = {
+                        navHostController.navigate(Routes.CheckoutScreen)
+                    }
                 )
             }
         }

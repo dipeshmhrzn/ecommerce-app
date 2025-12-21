@@ -77,7 +77,7 @@ class CartDataStore(
                     item
                 }
             }.filter { it.quantity > 0 }
-            preferences[CART_ITEMS]=json.encodeToString(updatedItems)
+            preferences[CART_ITEMS] = json.encodeToString(updatedItems)
         }
 
     }

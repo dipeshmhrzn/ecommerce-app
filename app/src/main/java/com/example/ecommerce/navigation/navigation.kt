@@ -13,6 +13,8 @@ import com.example.ecommerce.presentation.auth.ForgotPasswordScreen
 import com.example.ecommerce.presentation.auth.LoginScreen
 import com.example.ecommerce.presentation.auth.RegisterScreen
 import com.example.ecommerce.presentation.cart.CartScreen
+import com.example.ecommerce.presentation.checkout.CheckOutScreen
+import com.example.ecommerce.presentation.checkout.CheckoutCard
 import com.example.ecommerce.presentation.home.HomeScreen
 import com.example.ecommerce.presentation.home.ProductDetailScreen
 import com.example.ecommerce.presentation.onboardingscreen.OnBoardScreen1
@@ -103,6 +105,10 @@ fun Navigation() {
 
         composable<Routes.SettingScreen>{
             SettingsScreen(navHostController = navController)
+        }
+
+        composable<Routes.CheckoutScreen>{
+            CheckOutScreen()
         }
 
     }
