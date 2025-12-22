@@ -40,11 +40,15 @@ import coil3.compose.SubcomposeAsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.example.ecommerce.R
+import com.example.ecommerce.domain.model.CartItem
 import com.example.ecommerce.ui.theme.Montserrat
+import kotlin.math.roundToInt
 
-@Preview(showBackground = true)
 @Composable
-fun CheckoutCard() {
+fun CheckoutCard(
+    cartItem: CartItem
+) {
+    val product = cartItem.product
     val context = LocalContext.current
     Box(
         modifier = Modifier
@@ -54,7 +58,7 @@ fun CheckoutCard() {
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
-                text = "Essence",
+                text = product.title,
                 fontSize = 16.sp,
                 fontFamily = Montserrat,
                 fontWeight = FontWeight.Medium,
@@ -70,7 +74,7 @@ fun CheckoutCard() {
                 ) {
                     SubcomposeAsyncImage(
                         model = ImageRequest.Builder(context)
-                            .data(R.drawable.eyewear)
+                            .data(product.thumbnail)
                             .crossfade(true)
                             .build(),
                         modifier = Modifier.fillMaxSize(),
@@ -110,7 +114,7 @@ fun CheckoutCard() {
 
                 Column {
                     Text(
-                        text = "Essence Mascara Lash Princess",
+                        text = product.title,
                         fontSize = 20.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -119,7 +123,7 @@ fun CheckoutCard() {
 
                         )
                     Text(
-                        text = "The Essence Mascara Lash Princess is a popular mascara known for its volumizing and lengthening effects. Achieve dramatic lashes with this long-lasting and cruelty-free formula.",
+                        text = product.description,
                         fontSize = 14.sp,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
@@ -128,14 +132,14 @@ fun CheckoutCard() {
                     Spacer(modifier = Modifier.height(20.dp))
                     Row {
                         Text(
-                            text = "Rs. 500",
+                            text = "Rs. ${product.price.roundToInt()*141}",
                             fontSize = 18.sp,
                             fontFamily = Montserrat,
                             fontWeight = FontWeight.SemiBold,
                         )
                         Spacer(modifier = Modifier.weight(1f))
                         Text(
-                            text = "Qty : 1",
+                            text = "Qty : ${cartItem.quantity}",
                             fontSize = 16.sp,
                             fontFamily = Montserrat,
                             fontWeight = FontWeight.SemiBold,
@@ -147,11 +151,14 @@ fun CheckoutCard() {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.fillMaxWidth().border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.surfaceColorAtElevation(10.dp),
-                    shape = RoundedCornerShape(8.dp)
-                ).padding(8.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.surfaceColorAtElevation(10.dp),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .padding(8.dp)
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.shippingtruck),
@@ -159,7 +166,7 @@ fun CheckoutCard() {
                     modifier = Modifier.size(24.dp)
                 )
                 Text(
-                    text = "Ships in 3-5 business days",
+                    text = product.shippingInformation,
                     fontSize = 16.sp,
                     fontFamily = Montserrat,
                     fontWeight = FontWeight.SemiBold,
@@ -169,7 +176,10 @@ fun CheckoutCard() {
         HorizontalDivider(
             thickness = 1.dp,
             color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
-            modifier = Modifier.padding(top = 8.dp, bottom = 8.dp).align(Alignment.BottomCenter).offset(y=24.dp)
+            modifier = Modifier
+                .padding(top = 8.dp, bottom = 8.dp)
+                .align(Alignment.BottomCenter)
+                .offset(y = 24.dp)
         )
     }
 }

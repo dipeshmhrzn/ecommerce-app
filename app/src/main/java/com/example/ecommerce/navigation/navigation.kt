@@ -86,9 +86,18 @@ fun Navigation() {
             HomeScreen(navHostController = navController)
         }
 
-        composable<Routes.ProductDetailScreen> {backStackEntry ->
-            val product =backStackEntry.toRoute<Routes.ProductDetailScreen>()
-            ProductDetailScreen(product.id, navHostController = navController)
+//        composable<Routes.ProductDetailScreen> {backStackEntry ->
+//            val product =backStackEntry.toRoute<Routes.ProductDetailScreen>()
+//            ProductDetailScreen(product.id, navHostController = navController)
+//        }
+
+        composable<Routes.ProductDetailScreen> { backStackEntry ->
+            val route = backStackEntry.toRoute<Routes.ProductDetailScreen>()
+            ProductDetailScreen(
+                id = route.id,
+                navHostController = navController,
+                backStackEntry = backStackEntry
+            )
         }
 
         composable<Routes.SearchScreen>{
@@ -99,16 +108,29 @@ fun Navigation() {
             WishlistScreen(navHostController = navController)
         }
 
-        composable<Routes.CartScreen>{
-            CartScreen(navHostController = navController)
+//        composable<Routes.CartScreen>{
+//            CartScreen(navHostController = navController)
+//        }
+
+        composable<Routes.CartScreen> { backStackEntry ->
+            CartScreen(
+                navHostController = navController,
+                backStackEntry = backStackEntry
+            )
         }
 
         composable<Routes.SettingScreen>{
             SettingsScreen(navHostController = navController)
         }
 
-        composable<Routes.CheckoutScreen>{
-            CheckOutScreen()
+//        composable<Routes.CheckoutScreen>{
+//            CheckOutScreen()
+//        }
+        composable<Routes.CheckoutScreen> { backStackEntry ->
+            CheckOutScreen(
+                navHostController = navController,
+                backStackEntry = backStackEntry
+            )
         }
 
     }

@@ -51,18 +51,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import coil3.compose.SubcomposeAsyncImage
 import com.example.ecommerce.R
 import com.example.ecommerce.domain.util.Result
 import com.example.ecommerce.navigation.Routes
 import com.example.ecommerce.presentation.cart.CartViewModel
+import com.example.ecommerce.presentation.checkout.CheckoutViewModel
 import com.example.ecommerce.presentation.components.ProductCard
 import com.example.ecommerce.presentation.components.ProductDetailCard
 import com.example.ecommerce.presentation.components.ReviewCard
 import com.example.ecommerce.presentation.components.StarRatings
 import com.example.ecommerce.presentation.wishlist.WishListViewModel
 import com.example.ecommerce.ui.theme.Montserrat
+import com.example.ecommerce.utils.sharedViewModel
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,10 +75,13 @@ fun ProductDetailScreen(
     viewModel: ProductViewModel = hiltViewModel(),
     wishlistViewModel: WishListViewModel = hiltViewModel(),
     cartViewModel: CartViewModel = hiltViewModel(),
-    navHostController: NavHostController
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
 ) {
 
     val productState by viewModel.productState.collectAsState()
+
+    val checkoutViewModel = backStackEntry.sharedViewModel<CheckoutViewModel>(navHostController)
 
     val cartState by cartViewModel.state.collectAsState()
     val badgeCount = cartState.cartItems.sumOf { it.quantity }
@@ -273,7 +279,12 @@ fun ProductDetailScreen(
                     }
 
                     Button(
-                        onClick = { },
+                        onClick = {
+                            product?.let {
+                                checkoutViewModel.checkoutFromProduct(it)
+                                navHostController.navigate(Routes.CheckoutScreen)
+                            }
+                        },
                         modifier = Modifier
                             .weight(1f)
                             .height(68.dp),

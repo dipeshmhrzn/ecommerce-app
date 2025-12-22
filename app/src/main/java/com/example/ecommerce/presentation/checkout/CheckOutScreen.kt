@@ -2,7 +2,6 @@ package com.example.ecommerce.presentation.checkout
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,7 +15,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -25,23 +23,36 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavHostController
 import com.example.ecommerce.R
-import com.example.ecommerce.navigation.Routes
-import com.example.ecommerce.presentation.cart.CartBottomBar
 import com.example.ecommerce.ui.theme.Montserrat
+import com.example.ecommerce.utils.sharedViewModel
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun CheckOutScreen() {
+fun CheckOutScreen(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val checkoutViewModel =
+        backStackEntry.sharedViewModel<CheckoutViewModel>(navHostController)
+
+    val items by checkoutViewModel.checkoutItems.collectAsState()
+
+    val totalItems = items.sumOf { it.quantity }
+    val totalPrice = items.sumOf { it.product.price.roundToInt() * it.quantity } * 141
+
     Scaffold(
         containerColor = Color(0xFFF9F9F9),
         topBar = {
@@ -50,7 +61,7 @@ fun CheckOutScreen() {
                 navigationIcon = {
                     IconButton(
                         onClick = {
-
+                            navHostController.popBackStack()
                         },
                         modifier = Modifier
                             .background(color = Color(0xFFF2F2F2), shape = CircleShape)
@@ -98,13 +109,13 @@ fun CheckOutScreen() {
                         Spacer(modifier = Modifier.weight(1f))
                         Column {
                             Text(
-                                text = "Total (0 items)",
+                                text = "Total ($totalItems items)",
                                 fontSize = 14.sp,
                                 fontFamily = Montserrat,
                                 color = Color.Gray
                             )
                             Text(
-                                text = "Rs. 1000",
+                                text = "Rs. $totalPrice",
                                 fontSize = 22.sp,
                                 fontFamily = Montserrat,
                                 fontWeight = FontWeight.SemiBold,
@@ -142,7 +153,9 @@ fun CheckOutScreen() {
                 .fillMaxSize()
         ) {
 
-            CheckoutCard()
+            items.forEach {
+                CheckoutCard(cartItem = it)
+            }
 
         }
 

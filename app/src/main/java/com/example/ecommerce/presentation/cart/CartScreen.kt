@@ -39,21 +39,30 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import com.example.ecommerce.R
 import com.example.ecommerce.navigation.Routes
+import com.example.ecommerce.presentation.checkout.CheckoutViewModel
 import com.example.ecommerce.ui.theme.Montserrat
+import com.example.ecommerce.utils.sharedViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartScreen(
     navHostController: NavHostController,
-    viewModel: CartViewModel = hiltViewModel()
+    viewModel: CartViewModel = hiltViewModel(),
+    backStackEntry: NavBackStackEntry
 ) {
+
+    val checkoutViewModel = backStackEntry.sharedViewModel<CheckoutViewModel>(navHostController)
+
 
     val context = LocalContext.current
 
     val state by viewModel.state.collectAsState()
+
+
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { message ->
@@ -132,6 +141,21 @@ fun CartScreen(
                         viewModel.toggleAllSelection()
                     },
                     onCheckout = {
+//                        val selectedItems = state.cartItems.filter {
+//                            state.selectedItems.contains(it.product.id)
+//                        }
+//
+//                        checkoutViewModel.checkoutFromCart(selectedItems)
+                        val selectedItems = state.cartItems.filter {
+                            state.selectedItems.contains(it.product.id)
+                        }
+
+                        if (selectedItems.isEmpty()) {
+                            Toast.makeText(context, "Select at least one item", Toast.LENGTH_SHORT).show()
+                            return@CartBottomBar
+                        }
+
+                        checkoutViewModel.checkoutFromCart(selectedItems)
                         navHostController.navigate(Routes.CheckoutScreen)
                     }
                 )
@@ -144,8 +168,8 @@ fun CartScreen(
                 .padding(paddingValues)
                 .fillMaxSize()
         ) {
-            when{
-                state.isLoading->{
+            when {
+                state.isLoading -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -207,12 +231,12 @@ fun CartScreen(
                     }
                 }
 
-                else->{
+                else -> {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        items(state.cartItems){item->
+                        items(state.cartItems) { item ->
                             CartItemCard(
                                 cartItem = item,
                                 onQuantityIncrease = {
@@ -240,7 +264,6 @@ fun CartScreen(
                 }
 
             }
-
 
 
         }
