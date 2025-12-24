@@ -58,7 +58,7 @@ fun CheckoutCard(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
-                text = product.title,
+                text = product.brand.toString(),
                 fontSize = 16.sp,
                 fontFamily = Montserrat,
                 fontWeight = FontWeight.Medium,

@@ -8,12 +8,22 @@ import coil3.disk.DiskCache
 import coil3.memory.MemoryCache
 import coil3.request.crossfade
 import coil3.util.DebugLogger
+import com.stripe.android.PaymentConfiguration
+import com.stripe.android.core.injection.PUBLISHABLE_KEY
 import dagger.hilt.android.HiltAndroidApp
 import okio.Path.Companion.toOkioPath
 
 @HiltAndroidApp
 class EcommerceApplication : Application(), SingletonImageLoader.Factory {
 
+    override fun onCreate() {
+        super.onCreate()
+
+        PaymentConfiguration.init(
+            applicationContext,
+            publishableKey = BuildConfig.PUBLISHABLE_KEY
+        )
+    }
     override fun newImageLoader(context: PlatformContext): ImageLoader {
 
         return ImageLoader.Builder(context)

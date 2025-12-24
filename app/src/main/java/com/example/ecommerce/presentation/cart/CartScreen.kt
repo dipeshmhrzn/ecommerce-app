@@ -141,11 +141,7 @@ fun CartScreen(
                         viewModel.toggleAllSelection()
                     },
                     onCheckout = {
-//                        val selectedItems = state.cartItems.filter {
-//                            state.selectedItems.contains(it.product.id)
-//                        }
-//
-//                        checkoutViewModel.checkoutFromCart(selectedItems)
+
                         val selectedItems = state.cartItems.filter {
                             state.selectedItems.contains(it.product.id)
                         }

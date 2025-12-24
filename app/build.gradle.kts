@@ -40,6 +40,17 @@ android {
             "SUPABASE_ANON_KEY",
             "\"${props.getProperty("SUPABASE_ANON_KEY", "")}\""
         )
+        buildConfigField(
+            "String",
+            "PUBLISHABLE_KEY",
+            "\"${props.getProperty("PUBLISHABLE_KEY", "")}\""
+        )
+        buildConfigField(
+            "String",
+            "SECRET_KEY",
+            "\"${props.getProperty("SECRET_KEY", "")}\""
+        )
+
     }
 
     buildTypes {
@@ -133,6 +144,16 @@ dependencies {
     implementation(platform("io.github.jan-tennert.supabase:bom:3.2.2"))
     implementation("io.github.jan-tennert.supabase:storage-kt")
     implementation("io.github.jan-tennert.supabase:auth-kt")
+
+    debugImplementation("androidx.compose.ui:ui-tooling")
+
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+    implementation("androidx.activity:activity-compose:1.8.1")
+
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.stripe:stripe-android:21.28.0")
 
 
 }

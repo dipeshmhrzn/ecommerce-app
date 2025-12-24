@@ -125,6 +125,26 @@ class CartViewModel @Inject constructor(
         }
     }
 
+    fun removePurchasedItems(productIds: List<Int>) {
+        viewModelScope.launch {
+            try {
+                removeSelectedCartItemsUseCase(productIds)
+
+                val updatedCartItems =
+                    _state.value.cartItems.filter { !productIds.contains(it.product.id) }
+                _state.value = _state.value.copy(
+                    cartItems = updatedCartItems,
+                    selectedItems = _state.value.selectedItems - productIds.toSet()
+                )
+                recalcTotals()
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    error = e.localizedMessage ?: "Failed to remove purchased items"
+                )
+            }
+        }
+    }
+
 
     private fun getCartItems() {
         viewModelScope.launch {

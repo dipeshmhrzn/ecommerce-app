@@ -1,5 +1,6 @@
 package com.example.ecommerce.presentation.checkout
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,33 +26,85 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
+import com.example.ecommerce.BuildConfig
 import com.example.ecommerce.R
+import com.example.ecommerce.data.remote.StripeService
+import com.example.ecommerce.navigation.Routes
+import com.example.ecommerce.presentation.cart.CartViewModel
 import com.example.ecommerce.ui.theme.Montserrat
 import com.example.ecommerce.utils.sharedViewModel
+import com.stripe.android.paymentsheet.PaymentSheet
+import com.stripe.android.paymentsheet.PaymentSheetResult
+import com.stripe.android.paymentsheet.rememberPaymentSheet
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CheckOutScreen(
     navHostController: NavHostController,
-    backStackEntry: NavBackStackEntry
+    backStackEntry: NavBackStackEntry,
+    cartViewModel: CartViewModel = hiltViewModel()
 ) {
-    val checkoutViewModel =
-        backStackEntry.sharedViewModel<CheckoutViewModel>(navHostController)
+    val checkoutViewModel = backStackEntry.sharedViewModel<CheckoutViewModel>(navHostController)
 
     val items by checkoutViewModel.checkoutItems.collectAsState()
 
+    val context = LocalContext.current
+
     val totalItems = items.sumOf { it.quantity }
     val totalPrice = items.sumOf { it.product.price.roundToInt() * it.quantity } * 141
+
+    val scope = rememberCoroutineScope()
+    val stripeService = remember { StripeService(BuildConfig.SECRET_KEY) }
+    val paymentSheet = rememberPaymentSheet { result ->
+        when (result) {
+            is PaymentSheetResult.Canceled -> {
+                Toast.makeText(context, "Payment canceled", Toast.LENGTH_SHORT).show()
+            }
+
+            is PaymentSheetResult.Failed -> {
+                Toast.makeText(
+                    context,
+                    "Payment failed : ${result.error.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+            is PaymentSheetResult.Completed -> {
+                Toast.makeText(context, "Order has been placed successfully", Toast.LENGTH_SHORT)
+                    .show()
+                checkoutViewModel.clearCheckout()
+
+
+                // Remove purchased items from cart
+                val purchasedIds = items.map { it.product.id }
+                cartViewModel.removePurchasedItems(purchasedIds)
+
+                // Navigate to Home screen
+                navHostController.navigate(Routes.HomeScreen) {
+                    popUpTo(Routes.HomeScreen) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+        }
+    }
+
 
     Scaffold(
         containerColor = Color(0xFFF9F9F9),
@@ -91,7 +144,6 @@ fun CheckOutScreen(
             )
         },
         bottomBar = {
-
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 color = Color.White,
@@ -126,7 +178,38 @@ fun CheckOutScreen(
                         Spacer(modifier = Modifier.width(10.dp))
 
                         Button(
-                            onClick = {},
+                            onClick = {
+                                scope.launch {
+                                    try {
+                                        val result = stripeService.createPaymentIntent(totalPrice)
+                                        if (result.isSuccess) {
+                                            val clientSecret = result.getOrNull()
+                                            if (clientSecret != null) {
+                                                presentPaymentSheet(paymentSheet, clientSecret)
+                                            } else {
+                                                Toast.makeText(
+                                                    context,
+                                                    "No secret key",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+
+                                            }
+                                        } else {
+                                            Toast.makeText(
+                                                context,
+                                                "Payment failed: ${result.exceptionOrNull()?.message}",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    } catch (e: Exception) {
+                                        Toast.makeText(
+                                            context,
+                                            "Payment failed: ${e.message}",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                            },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(0xFFF83758)
                             ),
@@ -160,4 +243,17 @@ fun CheckOutScreen(
         }
 
     }
+}
+
+
+fun presentPaymentSheet(paymentSheet: PaymentSheet, clientSecret: String) {
+    val configuration = PaymentSheet.Configuration(
+        merchantDisplayName = "Stylish",
+        allowsDelayedPaymentMethods = false
+    )
+
+    paymentSheet.presentWithPaymentIntent(
+        paymentIntentClientSecret = clientSecret,
+        configuration = configuration
+    )
 }
