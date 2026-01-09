@@ -1,50 +1,99 @@
 # E-commerce App
 
-A sleek and modern **E-commerce application** built using **Kotlin** and **Jetpack Compose** for Android. The app now includes secure authentication, product browsing, search, sorting, filtering, wishlist, cart management, and user profile features. It integrates **Firebase**, **Firestore**, **Room**, **DataStore**, and **Supabase** to deliver a complete shopping experience.
+A sleek and modern **E-commerce application** built using **Kotlin** and **Jetpack Compose** for Android.  
+The app follows **MVVM architecture** and focuses on clean code, state management, and real-world features such as **secure payments using Stripe**.
+
+It includes secure authentication, product browsing, search, sorting, filtering, wishlist, cart management, checkout with Stripe, and user profile features.  
+The app integrates **Firebase**, **Firestore**, **Room**, **DataStore**, **Supabase**, and **Stripe** to deliver a complete shopping experience.
+
+---
 
 ## Features
 
-### Authentication
-- **User Registration** using Firebase Authentication.
-- **User Login** with proper error handling.
-- **Google Sign-In** support.
-- **Password Reset** via email.
-- **Logout** functionality.
-- **Authentication State Management** to persist login sessions.
-- **Form Validation** for both login and registration.
+### 🔐 Authentication
+- **User Registration** using Firebase Authentication
+- **User Login** with proper error handling
+- **Google Sign-In** support
+- **Password Reset** via email
+- **Logout** functionality
+- **Authentication State Management** to persist login sessions
+- **Form Validation** for both login and registration
 
+---
 
-### Product Features
-- **Product Fetching** from a remote API.
-- **Search** products.
-- **Sort** products (price).
-- **Filter** products by price range and rating.
-- **Product Details** screen.
+### 🛍 Product Features
+- **Product Fetching** from a remote dummy API
+- **Search** products
+- **Sort** products by price
+- **Filter** products by price range and rating
+- **Product Details** screen
 
-### Wishlist
-- Add/remove products from wishlist.
-- Wishlist stored locally using **Room Database**.
+> A dummy API is intentionally used to focus on UI behavior, state management, and scalable architecture. Switching to a real backend would require minimal changes.
 
-### Cart
-- Add/remove items from cart.
-- Cart stored using **DataStore** for persistence.
+---
 
-### Profile
-- User data stored in **Firestore** after registration.
-- Select profile image from gallery.
-- Upload profile picture to **Supabase Storage**.
-- Profile image URL stored in Firestore.
-- Profile screen displays user info and photo.
+### ❤️ Wishlist
+- Add/remove products from wishlist
+- Wishlist stored locally using **Room Database**
+- Offline-friendly wishlist support
 
+---
+
+### 🛒 Cart
+- Add/remove items from cart
+- Quantity management
+- Cart data persisted using **DataStore**
+- Cart state survives configuration changes
+
+---
+
+### 💳 Payment (Stripe Integration)
+- Secure checkout using **Stripe Payment Gateway**
+- Payment flow integrated with cart
+- Handles payment success, failure, and cancellation
+- Uses Stripe test environment for safe transactions
+
+This demonstrates real-world payment handling and secure transaction flow in Android apps.
+
+---
+
+### 👤 Profile
+- User data stored in **Firestore** after registration
+- Select profile image from gallery
+- Upload profile picture to **Supabase Storage**
+- Profile image URL stored in Firestore
+- Profile screen displays user info and profile photo
+
+---
+
+## 🧠 Architecture Overview
+
+The app follows **MVVM (Model–View–ViewModel)** architecture with unidirectional data flow:
+
+UI (Jetpack Compose)
+      ↓
+ViewModel (StateFlow)
+      ↓
+Repository
+      ↓
+Remote API / Room / DataStore
+
+---
 
 ## Tech Stack
 
 - **Programming Language**: Kotlin
-- **UI Framework**: Jetpack Compose
+- **UI Framework**: Jetpack Compose (Material 3)
+- **Architecture**: MVVM
+- **Dependency Injection**: Hilt
 - **Authentication**: Firebase Authentication
-- **Database**: Firestore, Room, DataStore
+- **Database**: Firestore, Room
+- **Local Storage**: DataStore
 - **Storage**: Supabase
-- **API**: Ktor (Product fetching)
+- **Networking**: Ktor
+- **Payment Gateway**: Stripe
+
+---
 
 ## App Screenshots
 
