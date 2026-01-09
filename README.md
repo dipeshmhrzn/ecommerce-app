@@ -66,20 +66,6 @@ This demonstrates real-world payment handling and secure transaction flow in And
 
 ---
 
-## 🧠 Architecture Overview
-
-The app follows **MVVM (Model–View–ViewModel)** architecture with unidirectional data flow:
-
-UI (Jetpack Compose)
-      ↓
-ViewModel (StateFlow)
-      ↓
-Repository
-      ↓
-Remote API / Room / DataStore
-
----
-
 ## Tech Stack
 
 - **Programming Language**: Kotlin
@@ -106,7 +92,6 @@ Remote API / Room / DataStore
 
 ## Future Improvements
 
-- Payment Gateway Integration
 - Order History & Tracking
 - Push Notifications
 
