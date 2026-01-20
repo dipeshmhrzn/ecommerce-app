@@ -1,5 +1,6 @@
 package com.example.ecommerce.presentation.checkout
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -26,10 +27,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -41,9 +40,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
-import com.example.ecommerce.BuildConfig
 import com.example.ecommerce.R
-import com.example.ecommerce.data.remote.StripeService
+import com.example.ecommerce.di.StripeServiceEntryPoint
 import com.example.ecommerce.navigation.Routes
 import com.example.ecommerce.presentation.cart.CartViewModel
 import com.example.ecommerce.ui.theme.Montserrat
@@ -51,6 +49,7 @@ import com.example.ecommerce.utils.sharedViewModel
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.paymentsheet.rememberPaymentSheet
+import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -71,7 +70,14 @@ fun CheckOutScreen(
     val totalPrice = items.sumOf { it.product.price.roundToInt() * it.quantity } * 141
 
     val scope = rememberCoroutineScope()
-    val stripeService = remember { StripeService(BuildConfig.SECRET_KEY) }
+
+    val stripeService = remember {
+        EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            StripeServiceEntryPoint::class.java
+        ).stripeService()
+    }
+
     val paymentSheet = rememberPaymentSheet { result ->
         when (result) {
             is PaymentSheetResult.Canceled -> {
@@ -182,6 +188,7 @@ fun CheckOutScreen(
                                 scope.launch {
                                     try {
                                         val result = stripeService.createPaymentIntent(totalPrice)
+                                        Log.d("Stripe", "Payment intent created: $result")
                                         if (result.isSuccess) {
                                             val clientSecret = result.getOrNull()
                                             if (clientSecret != null) {

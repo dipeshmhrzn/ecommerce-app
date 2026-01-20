@@ -1,51 +1,49 @@
 package com.example.ecommerce.data.remote
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.forms.FormDataContent
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.Parameters
+import io.ktor.http.contentType
+import kotlinx.serialization.Serializable
+import javax.inject.Inject
+import javax.inject.Named
 
-class StripeService(private val secretKey: String) {
-    private val client = okhttp3.OkHttpClient()
-    private val gson = com.google.gson.Gson()
-    private val baseUrl = "https://api.stripe.com/v1/"
-
+class StripeService @Inject constructor(
+    @Named("Stripe") private val client: HttpClient,
+    private val secretKey: String
+) {
     suspend fun createPaymentIntent(amount: Int): Result<String> {
+        return try {
+            val response: PaymentIntentResponse = client.post("payment_intents") {
+                header(HttpHeaders.Authorization, "Bearer $secretKey")
+                contentType(ContentType.Application.FormUrlEncoded)
+                setBody(
+                    FormDataContent(
+                        Parameters.build {
+                            append("amount", amount.toString())
+                            append("currency", "usd")
+                            append("payment_method_types[]", "card")
+                        }
+                    )
+                )
+            }.body()
 
-        val formBody = okhttp3.FormBody.Builder()
-            .add("amount", amount.toString())
-            .add("currency", "usd")
-            .add("payment_method_types[]", "card")
-            .build()
+            Result.success(response.client_secret)
 
-        val request = okhttp3.Request.Builder()
-            .url("${baseUrl}payment_intents")
-            .post(formBody)
-            .addHeader("Authorization", "Bearer $secretKey")
-            .build()
-
-        return withContext(Dispatchers.IO) {
-            try {
-                val response = client.newCall(request).execute()
-                val responseBody = response.body?.string()
-
-                if (response.isSuccessful && responseBody != null){
-                    val paymentIntent = gson.fromJson(responseBody, PaymentIntentResponse::class.java)
-                    Result.success(paymentIntent.client_secret)
-                }else{
-                    Result.failure(Exception("Payment intent creation failed : $responseBody"))
-                }
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 
+    @Serializable
     data class PaymentIntentResponse(
-//        val id : String,
-        val client_secret : String,
-//        val amount : Int,
-//        val currency : String,
-//        val status : String
+        val client_secret: String
     )
-
-
 }
+

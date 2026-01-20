@@ -5,9 +5,10 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
+import javax.inject.Named
 
 class ProductApiServices(
-    val httpClient: HttpClient
+    @Named("Product") val httpClient: HttpClient
 ) {
     suspend fun getProducts(limit: Int = 0): ProductDto {
         return httpClient.get("/products") {

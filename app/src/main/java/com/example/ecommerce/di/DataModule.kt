@@ -48,7 +48,15 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import javax.inject.Singleton
 import com.example.ecommerce.BuildConfig
+import com.example.ecommerce.data.remote.StripeService
 import io.github.jan.supabase.storage.Storage
+import io.github.jan.supabase.supabaseJson
+import io.ktor.client.request.header
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.contentType
+import io.ktor.http.encodedPath
+import javax.inject.Named
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -72,8 +80,11 @@ object DataModule {
 
     @Provides
     @Singleton
-    fun provideUserProfileRepository(firestore: FirebaseFirestore, supabaseClient: SupabaseClient): UserProfileRepository {
-        return UserProfileRepositoryImplementation(firestore,supabaseClient)
+    fun provideUserProfileRepository(
+        firestore: FirebaseFirestore,
+        supabaseClient: SupabaseClient
+    ): UserProfileRepository {
+        return UserProfileRepositoryImplementation(firestore, supabaseClient)
     }
 
     @Provides
@@ -118,6 +129,7 @@ object DataModule {
 
     @Provides
     @Singleton
+    @Named("Product")
     fun provideProductHttpClient(): HttpClient {
         return HttpClient(CIO) {
             install(ContentNegotiation) {
@@ -145,7 +157,49 @@ object DataModule {
 
     @Provides
     @Singleton
-    fun provideProductApiServices(httpClient: HttpClient): ProductApiServices {
+    @Named("Stripe")
+    fun provideStripeHttpClient(): HttpClient {
+        return HttpClient(CIO) {
+            install(ContentNegotiation) {
+                json(
+                    Json {
+                        ignoreUnknownKeys = true
+                        isLenient = true
+                    }
+                )
+            }
+
+            install(HttpTimeout) {
+                requestTimeoutMillis = 15000
+                connectTimeoutMillis = 15000
+                socketTimeoutMillis = 15000
+            }
+
+            defaultRequest {
+                url {
+                    protocol = URLProtocol.HTTPS
+                    host = "api.stripe.com"
+                    encodedPath = "/v1/"
+                }
+            }
+
+        }
+    }
+
+    @Provides
+    @Singleton
+    fun provideStripeService(
+        @Named("Stripe") stripeHttpClient: HttpClient
+    ): StripeService {
+        return StripeService(
+            client = stripeHttpClient,
+            secretKey = BuildConfig.SECRET_KEY
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideProductApiServices(@Named("Product") httpClient: HttpClient): ProductApiServices {
         return ProductApiServices(httpClient)
     }
 
