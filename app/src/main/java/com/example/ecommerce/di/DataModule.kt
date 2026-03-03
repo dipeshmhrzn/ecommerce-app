@@ -4,12 +4,14 @@ import android.content.Context
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.room.Room
+import com.example.ecommerce.BuildConfig
 import com.example.ecommerce.R
-import com.example.ecommerce.data.local.datastore.UserPreferencesDataStore
 import com.example.ecommerce.data.local.dao.WishlistDao
 import com.example.ecommerce.data.local.database.StylishDatabase
 import com.example.ecommerce.data.local.datastore.CartDataStore
+import com.example.ecommerce.data.local.datastore.UserPreferencesDataStore
 import com.example.ecommerce.data.remote.ProductApiServices
+import com.example.ecommerce.data.remote.StripeService
 import com.example.ecommerce.data.repositoryimpl.AuthRepositoryImpl
 import com.example.ecommerce.data.repositoryimpl.CartRepositoryImpl
 import com.example.ecommerce.data.repositoryimpl.ProductRepositoryImpl
@@ -38,25 +40,18 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.createSupabaseClient
+import io.github.jan.supabase.storage.Storage
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.http.URLProtocol
+import io.ktor.http.encodedPath
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
-import javax.inject.Singleton
-import com.example.ecommerce.BuildConfig
-import com.example.ecommerce.data.remote.StripeService
-import io.github.jan.supabase.storage.Storage
-import io.github.jan.supabase.supabaseJson
-import io.ktor.client.request.header
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.contentType
-import io.ktor.http.encodedPath
 import javax.inject.Named
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)

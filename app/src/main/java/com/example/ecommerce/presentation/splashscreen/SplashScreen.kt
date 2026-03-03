@@ -28,15 +28,17 @@ import kotlinx.coroutines.delay
 @Composable
 fun SplashScreen(
     isLoading: Boolean,
-    onFinish:()->Unit) {
+    onFinish: () -> Unit
+) {
 
     LaunchedEffect(isLoading) {
         Log.d("SplashScreen", "isLoading: $isLoading")
-        if (!isLoading){
+        if (!isLoading) {
             delay(1000)
             onFinish()
         }
     }
+
     Scaffold {
         Row(
             modifier = Modifier
@@ -69,9 +71,3 @@ fun SplashScreen(
         }
     }
 }
-
-//@Composable
-//@Preview(showBackground = true)
-//fun SplashScreenPreview() {
-//    SplashScreen()
-//}

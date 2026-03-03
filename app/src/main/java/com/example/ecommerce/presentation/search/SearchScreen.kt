@@ -83,6 +83,9 @@ fun SearchScreen(
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
+
+
+
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             topBar = {
